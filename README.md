@@ -1,17 +1,57 @@
-# birdle
+# Bite Finder (Flutter + Dart)
 
-A new Flutter project.
+Bite Finder is a Flutter mobile app that helps users discover restaurants using trusted ratings, reviews, specialties, and personalized recommendations.
 
-## Getting Started
+## Architecture
+- Pattern: **MVVM**
+- State management: **Provider**
+- Navigation: **go_router**
+- Data layer: **Local mock + SharedPreferences persistence**
+- Repository design is interface-first (`domain/repositories`) so it can be swapped to REST API later.
 
-This project is a starting point for a Flutter application.
+## Features
+- Splash + auth route decision
+- Login/Register with validation and local session persistence
+- Home search by name/cuisine/specialty/bestseller
+- Filter by cuisine + rating (`>= 4.0`), sort by Top Rated / Nearest / Most Reviewed
+- Restaurant details with photo carousel, services, bestsellers, reviews, add review
+- Favorite toggle and Favorites screen
+- Recommendations based on favorites + search history + top-rated fallback
+- Feedback/Complaint form and local submission history
+- Profile with user info, recent searches, reviews given, logout
+- Material 3 + light/dark theme support
 
-A few resources to get you started if this is your first Flutter project:
+## Folder Structure
+```
+lib/
+  core/
+    constants/
+    theme/
+    utils/
+    routes/
+  data/
+    models/
+    sources/
+    repositories/
+  domain/
+    repositories/
+  presentation/
+    viewmodels/
+    views/
+    widgets/
+  main.dart
+```
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+## Run
+1. `flutter pub get`
+2. `flutter run`
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Local Setup
+- Full environment setup steps are documented in `docs/SETUP.md`.
+- Use Flutter stable channel for predictable behavior across platforms.
+
+## Tests
+- `flutter test`
+- Includes:
+  - auth validation tests
+  - restaurant search/filter tests
