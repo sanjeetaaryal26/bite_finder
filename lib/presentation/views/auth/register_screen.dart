@@ -43,7 +43,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     if (!mounted) return;
     if (success) {
-      context.go('/home');
+      context.go('/login');
     } else if (vm.error != null) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(vm.error!)));
     }

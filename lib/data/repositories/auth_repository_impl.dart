@@ -30,7 +30,6 @@ class AuthRepositoryImpl implements AuthRepository {
 
     users.add(user);
     await storage.writeUsers(users.map((u) => u.toJson()).toList());
-    await storage.writeSessionUserId(user.id);
     return user;
   }
 

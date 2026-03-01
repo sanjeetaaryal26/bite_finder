@@ -55,7 +55,7 @@ class AuthViewModel extends ChangeNotifier {
     _error = null;
     notifyListeners();
     try {
-      _currentUser = await _authRepository.register(name: name.trim(), email: email.trim(), password: password);
+      await _authRepository.register(name: name.trim(), email: email.trim(), password: password);
       return true;
     } catch (e) {
       _error = e.toString().replaceFirst('Exception: ', '');
