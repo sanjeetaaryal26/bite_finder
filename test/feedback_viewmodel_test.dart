@@ -1,6 +1,6 @@
-import 'package:birdle/data/models/feedback_model.dart';
-import 'package:birdle/data/sources/mock_restaurant_data.dart';
-import 'package:birdle/presentation/viewmodels/feedback_viewmodel.dart';
+import 'package:birdle/features/feedback/data/models/feedback_model.dart';
+import 'package:birdle/features/restaurant/data/data_source/mock_restaurant_data.dart';
+import 'package:birdle/features/feedback/presentation/view_model/feedback_viewmodel.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'support/fake_repositories.dart';

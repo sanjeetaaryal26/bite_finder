@@ -1,5 +1,5 @@
-import 'package:birdle/data/sources/mock_restaurant_data.dart';
-import 'package:birdle/presentation/viewmodels/favorites_viewmodel.dart';
+import 'package:birdle/features/restaurant/data/data_source/mock_restaurant_data.dart';
+import 'package:birdle/features/favorites/presentation/view_model/favorites_viewmodel.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'support/fake_repositories.dart';

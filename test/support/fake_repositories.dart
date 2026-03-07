@@ -1,9 +1,9 @@
-import 'package:birdle/data/models/feedback_model.dart';
-import 'package:birdle/data/models/restaurant_model.dart';
-import 'package:birdle/data/models/review_model.dart';
-import 'package:birdle/data/models/search_history_model.dart';
-import 'package:birdle/domain/repositories/feedback_repository.dart';
-import 'package:birdle/domain/repositories/restaurant_repository.dart';
+import 'package:birdle/features/feedback/data/models/feedback_model.dart';
+import 'package:birdle/features/restaurant/data/models/restaurant_model.dart';
+import 'package:birdle/features/restaurant/data/models/review_model.dart';
+import 'package:birdle/features/search/data/models/search_history_model.dart';
+import 'package:birdle/features/feedback/domain/repositories/feedback_repository.dart';
+import 'package:birdle/features/restaurant/domain/repositories/restaurant_repository.dart';
 
 class FakeRestaurantRepository implements RestaurantRepository {
   List<RestaurantModel> restaurants = [];

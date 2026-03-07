@@ -1,6 +1,6 @@
 import 'package:birdle/core/utils/restaurant_filter.dart';
 import 'package:birdle/core/constants/app_constants.dart';
-import 'package:birdle/data/sources/mock_restaurant_data.dart';
+import 'package:birdle/features/restaurant/data/data_source/mock_restaurant_data.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
