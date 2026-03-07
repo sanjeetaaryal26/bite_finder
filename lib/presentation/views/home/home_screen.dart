@@ -221,33 +221,35 @@ class _HomeScreenState extends State<HomeScreen> {
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.red[700]),
                       ),
                     ),
-                  Expanded(
-                    child: AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 250),
-                      child: vm.isLoading
-                          ? const LoadingState()
-                          : vm.restaurants.isEmpty
-                              ? const EmptyState(message: 'No restaurants found for current filters.')
-                              : ListView.builder(
-                                  key: ValueKey('${vm.query}_${vm.selectedCuisine}_${vm.sortBy}_${vm.highRatingOnly}'),
-                                  itemCount: vm.restaurants.length,
-                                  itemBuilder: (context, index) {
-                                    final restaurant = vm.restaurants[index];
-                                    final useFeaturedImages = vm.query.trim().isEmpty;
-                                    final featuredImage = useFeaturedImages
-                                        ? _featuredRestaurantImages[index % _featuredRestaurantImages.length]
-                                        : null;
-                                    return Padding(
-                                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                                      child: RestaurantCard(
-                                        restaurant: restaurant,
-                                        imageOverride: featuredImage,
-                                        onTap: () => context.push('/restaurant/${restaurant.id}'),
-                                      ),
-                                    );
-                                  },
-                                ),
+                  if (vm.isLoading && vm.restaurants.isNotEmpty)
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 16),
+                      child: LinearProgressIndicator(minHeight: 2),
                     ),
+                  Expanded(
+                    child: vm.isLoading && vm.restaurants.isEmpty
+                        ? const LoadingState()
+                        : vm.restaurants.isEmpty
+                            ? const EmptyState(message: 'No restaurants found for current filters.')
+                            : ListView.builder(
+                                key: ValueKey('${vm.query}_${vm.selectedCuisine}_${vm.sortBy}_${vm.highRatingOnly}'),
+                                itemCount: vm.restaurants.length,
+                                itemBuilder: (context, index) {
+                                  final restaurant = vm.restaurants[index];
+                                  final useFeaturedImages = vm.query.trim().isEmpty;
+                                  final featuredImage = useFeaturedImages
+                                      ? _featuredRestaurantImages[index % _featuredRestaurantImages.length]
+                                      : null;
+                                  return Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                                    child: RestaurantCard(
+                                      restaurant: restaurant,
+                                      imageOverride: featuredImage,
+                                      onTap: () => context.push('/restaurant/${restaurant.id}'),
+                                    ),
+                                  );
+                                },
+                              ),
                   ),
                 ],
               ),

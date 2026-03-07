@@ -4,8 +4,9 @@ class AppTheme {
   static const Color defaultSeedColor = Color(0xFF9E1116);
 
   static ThemeData lightTheme({Color seedColor = defaultSeedColor}) {
-    const bg = Color(0xFFF7ECEE);
     const text = Color(0xFF2A1618);
+    final bg = Color.lerp(const Color(0xFFFFFBFC), seedColor, 0.18)!;
+    final subtleSurface = Color.lerp(Colors.white, seedColor, 0.08)!;
     final colorScheme = ColorScheme.fromSeed(
       seedColor: seedColor,
       brightness: Brightness.light,
@@ -41,7 +42,7 @@ class AppTheme {
       textTheme: textTheme,
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: Colors.white,
+        fillColor: subtleSurface,
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         labelStyle: TextStyle(color: colorScheme.onSurfaceVariant, fontWeight: FontWeight.w500),
         hintStyle: TextStyle(color: colorScheme.onSurfaceVariant),
@@ -61,7 +62,7 @@ class AppTheme {
         ),
       ),
       cardTheme: CardThemeData(
-        color: colorScheme.surface,
+        color: subtleSurface,
         elevation: 0.3,
         margin: const EdgeInsets.symmetric(vertical: 8),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
