@@ -16,6 +16,7 @@ import '../../presentation/views/restaurant/restaurant_detail_screen.dart';
 import '../../presentation/views/restaurant/restaurant_map_screen.dart';
 import '../../presentation/views/splash/splash_screen.dart';
 import '../../presentation/widgets/app_scaffold.dart';
+import '../../presentation/fingerprint_login/fingerprint_login.dart';
 
 GoRouter buildRouter(AuthViewModel authViewModel) {
   return GoRouter(
@@ -25,15 +26,31 @@ GoRouter buildRouter(AuthViewModel authViewModel) {
       final isLoggedIn = authViewModel.isLoggedIn;
       final isAdmin = authViewModel.isAdmin;
       final location = state.matchedLocation;
+      final fingerprintUserId = authViewModel.fingerprintEnabledUserId;
 
       final isAuthRoute = location == '/auth' ||
           location == '/login' ||
           location == '/register' ||
           location == '/forgot-password' ||
-          location == '/splash';
+          location == '/splash' ||
+          location == '/fingerprint-login';
 
       if (!authViewModel.initialized) {
         return location == '/splash' ? null : '/splash';
+      }
+
+  
+      final disallowedExplicitAuthRoutes = [
+        '/login',
+        '/register',
+        '/forgot-password'
+      ];
+      // If fingerprint login is enabled for a user, require the fingerprint
+      // unlock screen until the app records a successful biometric unlock.
+      if (fingerprintUserId != null &&
+          !authViewModel.fingerprintUnlocked &&
+          location != '/fingerprint-login') {
+        return '/fingerprint-login';
       }
 
       if (!isLoggedIn && !isAuthRoute) {
@@ -45,13 +62,21 @@ GoRouter buildRouter(AuthViewModel authViewModel) {
         return '/home';
       }
 
-      if (isLoggedIn && (location == '/auth' || location == '/login' || location == '/register' || location == '/forgot-password')) {
+      if (isLoggedIn &&
+          (location == '/auth' ||
+              location == '/login' ||
+              location == '/register' ||
+              location == '/forgot-password')) {
         return isAdmin ? '/admin' : '/home';
       }
 
       return null;
     },
     routes: [
+      GoRoute(
+        path: '/fingerprint-login',
+        builder: (context, state) => const FingerprintLogin(),
+      ),
       GoRoute(
         path: '/splash',
         builder: (context, state) => const SplashScreen(),
@@ -81,23 +106,28 @@ GoRouter buildRouter(AuthViewModel authViewModel) {
         routes: [
           GoRoute(
             path: '/home',
-            pageBuilder: (context, state) => const NoTransitionPage(child: HomeScreen()),
+            pageBuilder: (context, state) =>
+                const NoTransitionPage(child: HomeScreen()),
           ),
           GoRoute(
             path: '/favorites',
-            pageBuilder: (context, state) => const NoTransitionPage(child: FavoritesScreen()),
+            pageBuilder: (context, state) =>
+                const NoTransitionPage(child: FavoritesScreen()),
           ),
           GoRoute(
             path: '/recommendations',
-            pageBuilder: (context, state) => const NoTransitionPage(child: RecommendationsScreen()),
+            pageBuilder: (context, state) =>
+                const NoTransitionPage(child: RecommendationsScreen()),
           ),
           GoRoute(
             path: '/feedback',
-            pageBuilder: (context, state) => const NoTransitionPage(child: FeedbackScreen()),
+            pageBuilder: (context, state) =>
+                const NoTransitionPage(child: FeedbackScreen()),
           ),
           GoRoute(
             path: '/profile',
-            pageBuilder: (context, state) => const NoTransitionPage(child: ProfileScreen()),
+            pageBuilder: (context, state) =>
+                const NoTransitionPage(child: ProfileScreen()),
           ),
         ],
       ),
@@ -110,7 +140,9 @@ GoRouter buildRouter(AuthViewModel authViewModel) {
       GoRoute(
         path: '/restaurant/:id/map',
         builder: (context, state) => RestaurantMapScreen(
-          restaurant: state.extra is RestaurantModel ? state.extra as RestaurantModel : null,
+          restaurant: state.extra is RestaurantModel
+              ? state.extra as RestaurantModel
+              : null,
         ),
       ),
     ],

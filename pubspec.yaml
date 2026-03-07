@@ -12,10 +12,14 @@ dependencies:
   provider: ^6.1.2
   go_router: ^14.8.1
   shared_preferences: ^2.5.3
+  flutter_secure_storage: ^8.0.0
   crypto: ^3.0.6
   geolocator: ^14.0.2
   flutter_map: ^8.2.2
   latlong2: ^0.9.1
+  light_sensor: ^3.0.2
+  local_auth: ^3.0.1
+  sensors_plus: ^3.0.0
 
 dev_dependencies:
   flutter_test:
@@ -26,6 +30,4 @@ flutter:
   uses-material-design: true
   assets:
     - data/osm/kathmandu_restaurants.json
-    - assets/images/logo.png
-    - assets/images/bite_logo.png
-    - assets/images/bite_logo_icon_1024.png
+    - assets/images/

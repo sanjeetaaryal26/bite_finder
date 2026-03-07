@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/utils/app_logger.dart';
 import '../../data/models/user_model.dart';
@@ -13,6 +14,8 @@ class AuthViewModel extends ChangeNotifier {
   bool _isLoading = false;
   String? _error;
   bool _initialized = false;
+  String? _fingerprintEnabledUserId;
+  bool _fingerprintUnlocked = false;
 
   UserModel? get currentUser => _currentUser;
   bool get isLoading => _isLoading;
@@ -20,6 +23,13 @@ class AuthViewModel extends ChangeNotifier {
   bool get isLoggedIn => _currentUser != null;
   bool get initialized => _initialized;
   bool get isAdmin => _currentUser?.role == UserRole.admin;
+  String? get fingerprintEnabledUserId => _fingerprintEnabledUserId;
+  bool get fingerprintUnlocked => _fingerprintUnlocked;
+
+  void setFingerprintUnlocked(bool unlocked) {
+    _fingerprintUnlocked = unlocked;
+    notifyListeners();
+  }
 
   Future<void> initialize() async {
     _isLoading = true;
@@ -28,6 +38,8 @@ class AuthViewModel extends ChangeNotifier {
       await _authRepository.ensureAdminAccount();
       _currentUser = await _authRepository.getCurrentUser();
       _error = null;
+      final prefs = await SharedPreferences.getInstance();
+      _fingerprintEnabledUserId = prefs.getString('fingerprint_enabled_user');
     } catch (e, st) {
       AppLogger.error(e, st, context: 'AuthViewModel.initialize');
       _error = null;
@@ -38,12 +50,24 @@ class AuthViewModel extends ChangeNotifier {
     }
   }
 
+  Future<void> setFingerprintEnabledForUser(String? userId) async {
+    final prefs = await SharedPreferences.getInstance();
+    if (userId == null) {
+      await prefs.remove('fingerprint_enabled_user');
+    } else {
+      await prefs.setString('fingerprint_enabled_user', userId);
+    }
+    _fingerprintEnabledUserId = userId;
+    notifyListeners();
+  }
+
   Future<bool> login({required String email, required String password}) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
     try {
-      _currentUser = await _authRepository.login(email: email.trim(), password: password);
+      _currentUser =
+          await _authRepository.login(email: email.trim(), password: password);
       return true;
     } catch (e, st) {
       AppLogger.error(e, st, context: 'AuthViewModel.login');
@@ -55,12 +79,16 @@ class AuthViewModel extends ChangeNotifier {
     }
   }
 
-  Future<bool> register({required String name, required String email, required String password}) async {
+  Future<bool> register(
+      {required String name,
+      required String email,
+      required String password}) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
     try {
-      await _authRepository.register(name: name.trim(), email: email.trim(), password: password);
+      await _authRepository.register(
+          name: name.trim(), email: email.trim(), password: password);
       return true;
     } catch (e, st) {
       AppLogger.error(e, st, context: 'AuthViewModel.register');
@@ -77,6 +105,8 @@ class AuthViewModel extends ChangeNotifier {
     notifyListeners();
     await _authRepository.logout();
     _currentUser = null;
+    // Reset biometric unlocked state on logout
+    _fingerprintUnlocked = false;
     _isLoading = false;
     notifyListeners();
   }
