@@ -113,12 +113,14 @@ class _HomeScreenState extends State<HomeScreen> {
                         _CuisineChip(
                           label: 'All',
                           selected: vm.selectedCuisine == 'All',
+                          selectedColor: ThemeViewModel.colorForCuisine('All'),
                           onTap: () => _onCuisineSelected(context, 'All', userId),
                         ),
                         ...AppConstants.cuisines.map(
                           (c) => _CuisineChip(
                             label: c,
                             selected: vm.selectedCuisine == c,
+                            selectedColor: ThemeViewModel.colorForCuisine(c),
                             onTap: () => _onCuisineSelected(context, c, userId),
                           ),
                         ),
@@ -261,11 +263,13 @@ class _CuisineChip extends StatelessWidget {
   final String label;
   final bool selected;
   final VoidCallback onTap;
+  final Color selectedColor;
 
   const _CuisineChip({
     required this.label,
     required this.selected,
     required this.onTap,
+    required this.selectedColor,
   });
 
   @override
@@ -273,8 +277,20 @@ class _CuisineChip extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 4),
       child: ChoiceChip(
-        label: Text(label),
+        label: Text(
+          label,
+          style: TextStyle(
+            color: selected ? Colors.white : null,
+            fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+          ),
+        ),
         selected: selected,
+        selectedColor: selectedColor,
+        backgroundColor: Colors.white,
+        side: BorderSide(
+          color: selected ? selectedColor : Colors.black26,
+        ),
+        showCheckmark: false,
         onSelected: (_) => onTap(),
       ),
     );

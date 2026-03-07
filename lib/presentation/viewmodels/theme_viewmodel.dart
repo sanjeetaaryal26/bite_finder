@@ -21,9 +21,13 @@ class ThemeViewModel extends ChangeNotifier {
   Color get seedColor => _seedColor;
   String get activeCuisine => _activeCuisine;
 
-  void applyCuisine(String cuisine) {
+  static Color colorForCuisine(String cuisine) {
     final normalized = cuisine.trim().toLowerCase();
-    final nextColor = _cuisineColors[normalized] ?? AppTheme.defaultSeedColor;
+    return _cuisineColors[normalized] ?? AppTheme.defaultSeedColor;
+  }
+
+  void applyCuisine(String cuisine) {
+    final nextColor = colorForCuisine(cuisine);
     final nextCuisine = cuisine.trim().isEmpty ? 'All' : cuisine;
     if (nextColor == _seedColor && nextCuisine == _activeCuisine) {
       return;
