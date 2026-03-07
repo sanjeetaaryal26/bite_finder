@@ -108,7 +108,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             const SizedBox(height: 10),
             const Text(
               'Already have an account?',
-              style: TextStyle(color: Color(0xFFF4DDDF), fontSize: 12),
+              style: TextStyle(color: Color(0xFFF4DDDF), fontSize: 14),
             ),
             TextButton(
               onPressed: () => context.go('/login'),
