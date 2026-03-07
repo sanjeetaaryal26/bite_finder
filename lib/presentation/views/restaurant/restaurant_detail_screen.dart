@@ -21,6 +21,47 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
   int _rating = 5;
   bool _loaded = false;
 
+  Widget _buildPhoto(String source, double height) {
+    if (source.trim().isEmpty) {
+      return Container(
+        height: height,
+        color: Colors.black12,
+        alignment: Alignment.center,
+        child: const Icon(Icons.restaurant, size: 42),
+      );
+    }
+    if (source.startsWith('assets/')) {
+      return Image.asset(
+        source,
+        fit: BoxFit.cover,
+        height: height,
+        width: double.infinity,
+      );
+    }
+    return Image.network(
+      source,
+      fit: BoxFit.cover,
+      height: height,
+      width: double.infinity,
+      filterQuality: FilterQuality.high,
+      loadingBuilder: (context, child, loadingProgress) {
+        if (loadingProgress == null) return child;
+        return Container(
+          height: height,
+          color: Colors.black12,
+          alignment: Alignment.center,
+          child: const CircularProgressIndicator(strokeWidth: 2),
+        );
+      },
+      errorBuilder: (_, _, _) => Container(
+        height: height,
+        color: Colors.black12,
+        alignment: Alignment.center,
+        child: const Icon(Icons.broken_image_outlined, size: 42),
+      ),
+    );
+  }
+
   @override
   void dispose() {
     _reviewController.dispose();
@@ -102,20 +143,37 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SizedBox(
-              height: 200,
-              child: PageView.builder(
-                itemCount: restaurant.photos.length,
-                itemBuilder: (context, index) {
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(16),
-                      child: Image.network(restaurant.photos[index], fit: BoxFit.cover),
+            Builder(
+              builder: (context) {
+                final width = MediaQuery.of(context).size.width;
+                final imageHeight = (width * 0.6).clamp(220.0, 300.0);
+                if (restaurant.photos.isEmpty) {
+                  return ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: Container(
+                      height: imageHeight,
+                      color: Colors.black12,
+                      alignment: Alignment.center,
+                      child: const Icon(Icons.restaurant, size: 42),
                     ),
                   );
-                },
-              ),
+                }
+                return SizedBox(
+                  height: imageHeight,
+                  child: PageView.builder(
+                    itemCount: restaurant.photos.length,
+                    itemBuilder: (context, index) {
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(16),
+                          child: _buildPhoto(restaurant.photos[index], imageHeight),
+                        ),
+                      );
+                    },
+                  ),
+                );
+              },
             ),
             const SizedBox(height: 12),
             Text(restaurant.description),

@@ -17,9 +17,9 @@ class AuthLandingScreen extends StatelessWidget {
             const SizedBox(height: 20),
             LayoutBuilder(
               builder: (context, constraints) {
-                final logoWidth = (constraints.maxWidth * 0.62).clamp(160.0, 260.0);
+                final logoWidth = (constraints.maxWidth * 0.82).clamp(230.0, 360.0);
                 return Align(
-                  alignment: Alignment.centerLeft,
+                  alignment: Alignment.center,
                   child: Image.asset(
                     'assets/images/logo.png',
                     width: logoWidth,
@@ -28,7 +28,7 @@ class AuthLandingScreen extends StatelessWidget {
                 );
               },
             ),
-            const SizedBox(height: 56),
+            const SizedBox(height: 38),
             Row(
               children: [
                 Expanded(
