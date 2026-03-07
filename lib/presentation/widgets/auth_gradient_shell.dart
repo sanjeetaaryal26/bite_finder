@@ -19,17 +19,19 @@ class AuthGradientShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    final titleSize = width < 360 ? 30.0 : 34.0;
     return Scaffold(
       body: Container(
         color: const Color(0xFFF4DDE0),
         alignment: Alignment.center,
         child: SafeArea(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 22),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 390),
+              constraints: const BoxConstraints(maxWidth: 420),
               child: Container(
-                padding: const EdgeInsets.fromLTRB(18, 14, 18, 20),
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 22),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(16),
                   gradient: const LinearGradient(
@@ -63,9 +65,9 @@ class AuthGradientShell extends StatelessWidget {
                     if (title.isNotEmpty)
                       Text(
                         title,
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: Colors.white,
-                          fontSize: 28,
+                          fontSize: titleSize,
                           fontWeight: FontWeight.w800,
                           height: 1.1,
                         ),
@@ -76,7 +78,7 @@ class AuthGradientShell extends StatelessWidget {
                         subtitle!,
                         style: const TextStyle(
                           color: Color(0xFFF6E8E9),
-                          fontSize: 13,
+                          fontSize: 14,
                         ),
                       ),
                     ],

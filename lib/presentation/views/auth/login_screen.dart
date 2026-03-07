@@ -93,7 +93,7 @@ class _LoginScreenState extends State<LoginScreen> {
             const SizedBox(height: 10),
             const Text(
               'Do you have any account?',
-              style: TextStyle(color: Color(0xFFF4DDDF), fontSize: 12),
+              style: TextStyle(color: Color(0xFFF4DDDF), fontSize: 14),
             ),
             TextButton(
               onPressed: () => context.go('/register'),

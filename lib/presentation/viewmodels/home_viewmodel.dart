@@ -45,7 +45,7 @@ class HomeViewModel extends ChangeNotifier {
       _userLocation = await _locationService.getCurrentLocation();
     } catch (e, st) {
       AppLogger.error(e, st, context: 'HomeViewModel.location');
-      _locationError = null;
+      _locationError = e.toString();
     }
   }
 
@@ -60,14 +60,18 @@ class HomeViewModel extends ChangeNotifier {
     _error = null;
     notifyListeners();
     try {
+      var effectiveSortBy = _sortBy;
       if (_sortBy == 'Nearest') {
         await _ensureUserLocation();
+        if (_userLocation == null) {
+          effectiveSortBy = 'Top Rated';
+        }
       }
       _restaurants = await _restaurantRepository.searchRestaurants(
         query: _query,
         selectedCuisine: _selectedCuisine,
         highRatingOnly: _highRatingOnly,
-        sortBy: _sortBy,
+        sortBy: effectiveSortBy,
         userLatitude: _userLocation?.latitude,
         userLongitude: _userLocation?.longitude,
       );
@@ -86,7 +90,7 @@ class HomeViewModel extends ChangeNotifier {
       }
     } catch (e, st) {
       AppLogger.error(e, st, context: 'HomeViewModel.load');
-      _error = null;
+      _error = 'Unable to load restaurants right now.';
     } finally {
       _isLoading = false;
       notifyListeners();

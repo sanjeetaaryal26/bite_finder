@@ -1,26 +1,26 @@
 import 'package:flutter/material.dart';
 
 class AppTheme {
-  static ThemeData lightTheme() {
-    const bg = Color(0xFFF4DDE0);
-    const surface = Color(0xFFFFF5F6);
-    const primary = Color(0xFF9E1116);
-    const primaryContainer = Color(0xFFD3696F);
-    const onPrimary = Colors.white;
-    const text = Color(0xFF2A1618);
+  static const Color defaultSeedColor = Color(0xFF9E1116);
 
+  static ThemeData lightTheme({Color seedColor = defaultSeedColor}) {
+    const text = Color(0xFF2A1618);
+    final bg = Color.lerp(const Color(0xFFFFFBFC), seedColor, 0.18)!;
+    final subtleSurface = Color.lerp(Colors.white, seedColor, 0.08)!;
     final colorScheme = ColorScheme.fromSeed(
-      seedColor: primary,
+      seedColor: seedColor,
       brightness: Brightness.light,
-      primary: primary,
-      onPrimary: onPrimary,
-      primaryContainer: primaryContainer,
-      onPrimaryContainer: Colors.white,
-      surface: surface,
-      onSurface: text,
-      secondary: const Color(0xFFB93A40),
-      onSecondary: Colors.white,
     );
+
+    final textTheme = Typography.material2021(platform: TargetPlatform.android).black.copyWith(
+          headlineMedium: const TextStyle(fontWeight: FontWeight.w800, fontSize: 28, color: text),
+          titleLarge: const TextStyle(fontWeight: FontWeight.w700, fontSize: 22, color: text),
+          titleMedium: const TextStyle(fontWeight: FontWeight.w700, fontSize: 18, color: text),
+          bodyLarge: const TextStyle(fontSize: 16, height: 1.35, color: text),
+          bodyMedium: const TextStyle(fontSize: 15, height: 1.35, color: text),
+          bodySmall: const TextStyle(fontSize: 13, height: 1.3, color: text),
+          labelLarge: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+        );
 
     return ThemeData(
       useMaterial3: true,
@@ -28,102 +28,112 @@ class AppTheme {
       colorScheme: colorScheme,
       scaffoldBackgroundColor: bg,
       canvasColor: bg,
-      appBarTheme: const AppBarTheme(
-        backgroundColor: Colors.transparent,
+      visualDensity: VisualDensity.adaptivePlatformDensity,
+      appBarTheme: AppBarTheme(
+        backgroundColor: colorScheme.surface,
         foregroundColor: text,
-        elevation: 0,
+        elevation: 0.2,
         centerTitle: false,
-        titleTextStyle: TextStyle(
+        titleTextStyle: textTheme.titleLarge?.copyWith(
           color: text,
-          fontSize: 22,
           fontWeight: FontWeight.w800,
         ),
       ),
-      textTheme: const TextTheme(
-        headlineMedium: TextStyle(fontWeight: FontWeight.w800, color: text),
-        titleLarge: TextStyle(fontWeight: FontWeight.w700, color: text),
-        bodyLarge: TextStyle(color: text),
-        bodyMedium: TextStyle(color: text),
-      ),
+      textTheme: textTheme,
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: const Color(0xFFECE9EA),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-        labelStyle: const TextStyle(color: Color(0xFF6D5053), fontWeight: FontWeight.w500),
-        hintStyle: const TextStyle(color: Color(0xFF8A6F73)),
-        prefixIconColor: const Color(0xFF7A5A5E),
-        suffixIconColor: const Color(0xFF7A5A5E),
+        fillColor: subtleSurface,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        labelStyle: TextStyle(color: colorScheme.onSurfaceVariant, fontWeight: FontWeight.w500),
+        hintStyle: TextStyle(color: colorScheme.onSurfaceVariant),
+        prefixIconColor: colorScheme.onSurfaceVariant,
+        suffixIconColor: colorScheme.onSurfaceVariant,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide.none,
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide.none,
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(24),
-          borderSide: const BorderSide(color: primary, width: 1.6),
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(color: colorScheme.primary, width: 1.4),
         ),
       ),
       cardTheme: CardThemeData(
-        color: surface,
-        elevation: 0,
+        color: subtleSurface,
+        elevation: 0.3,
         margin: const EdgeInsets.symmetric(vertical: 8),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
-      snackBarTheme: const SnackBarThemeData(
-        backgroundColor: Color(0xFF7C1117),
+      snackBarTheme: SnackBarThemeData(
+        backgroundColor: colorScheme.primary,
         contentTextStyle: TextStyle(color: Colors.white),
         behavior: SnackBarBehavior.floating,
       ),
       navigationBarTheme: NavigationBarThemeData(
-        backgroundColor: primary,
-        indicatorColor: primaryContainer,
-        height: 62,
+        backgroundColor: colorScheme.surface,
+        indicatorColor: colorScheme.primaryContainer,
+        height: 68,
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           final selected = states.contains(WidgetState.selected);
           return TextStyle(
-            color: Colors.white,
-            fontSize: 12,
+            color: selected ? colorScheme.onPrimaryContainer : colorScheme.onSurfaceVariant,
+            fontSize: 13,
             fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
           );
         }),
         iconTheme: WidgetStateProperty.resolveWith((states) {
           final selected = states.contains(WidgetState.selected);
           return IconThemeData(
-            color: selected ? Colors.white : const Color(0xFFFFD6D9),
-            size: selected ? 24 : 22,
+            color: selected ? colorScheme.primary : colorScheme.onSurfaceVariant,
+            size: selected ? 25 : 22,
           );
         }),
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
-          backgroundColor: primary,
+          backgroundColor: colorScheme.primary,
           foregroundColor: Colors.white,
           textStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-          minimumSize: const Size(0, 44),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          minimumSize: const Size(0, 48),
         ),
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          foregroundColor: const Color(0xFFAF2E35),
+          foregroundColor: colorScheme.primary,
           textStyle: const TextStyle(fontWeight: FontWeight.w600),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          foregroundColor: primary,
-          side: const BorderSide(color: primary, width: 1.3),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          foregroundColor: colorScheme.primary,
+          side: BorderSide(color: colorScheme.primary, width: 1.2),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         ),
       ),
     );
   }
 
-  static ThemeData darkTheme() {
-    return lightTheme();
+  static ThemeData darkTheme({Color seedColor = defaultSeedColor}) {
+    final colorScheme = ColorScheme.fromSeed(seedColor: seedColor, brightness: Brightness.dark);
+    return ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.dark,
+      colorScheme: colorScheme,
+      visualDensity: VisualDensity.adaptivePlatformDensity,
+      textTheme: Typography.material2021(platform: TargetPlatform.android).white.copyWith(
+            bodyLarge: const TextStyle(fontSize: 16),
+            bodyMedium: const TextStyle(fontSize: 15),
+            bodySmall: const TextStyle(fontSize: 13),
+          ),
+      navigationBarTheme: NavigationBarThemeData(
+        height: 68,
+        indicatorColor: colorScheme.primaryContainer,
+      ),
+    );
   }
 }

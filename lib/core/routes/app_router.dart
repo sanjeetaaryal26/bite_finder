@@ -100,6 +100,7 @@ GoRouter buildRouter(AuthViewModel authViewModel) {
         path: '/admin',
         builder: (context, state) => const AdminPanelScreen(),
       ),
+<<<<<<< HEAD
       ShellRoute(
         builder: (context, state, child) => AppScaffold(child: child),
         routes: [
@@ -127,6 +128,50 @@ GoRouter buildRouter(AuthViewModel authViewModel) {
             path: '/profile',
             pageBuilder: (context, state) =>
                 const NoTransitionPage(child: ProfileScreen()),
+=======
+      StatefulShellRoute.indexedStack(
+        builder: (context, state, navigationShell) => AppScaffold(navigationShell: navigationShell),
+        branches: [
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/home',
+                pageBuilder: (context, state) => const NoTransitionPage(child: HomeScreen()),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/favorites',
+                pageBuilder: (context, state) => const NoTransitionPage(child: FavoritesScreen()),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/recommendations',
+                pageBuilder: (context, state) => const NoTransitionPage(child: RecommendationsScreen()),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/feedback',
+                pageBuilder: (context, state) => const NoTransitionPage(child: FeedbackScreen()),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/profile',
+                pageBuilder: (context, state) => const NoTransitionPage(child: ProfileScreen()),
+              ),
+            ],
+>>>>>>> 84af9e232ec1fb1bb7fe10b4d217a4b8df148dcf
           ),
         ],
       ),

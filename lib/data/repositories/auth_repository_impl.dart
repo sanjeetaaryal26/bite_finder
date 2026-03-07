@@ -30,6 +30,7 @@ class AuthRepositoryImpl implements AuthRepository {
       passwordHash: HashUtils.hashPassword(_defaultAdminPassword),
       createdAt: DateTime.now().toIso8601String(),
       role: UserRole.admin,
+      photoPath: null,
     );
     users.add(admin);
     await storage.writeUsers(users.map((u) => u.toJson()).toList());
@@ -51,6 +52,7 @@ class AuthRepositoryImpl implements AuthRepository {
       passwordHash: HashUtils.hashPassword(password),
       createdAt: DateTime.now().toIso8601String(),
       role: UserRole.user,
+      photoPath: null,
     );
 
     users.add(user);
@@ -139,5 +141,44 @@ class AuthRepositoryImpl implements AuthRepository {
     if (sessionUserId == userId) {
       await storage.clearSessionUserId();
     }
+  }
+
+  @override
+  Future<UserModel> updateProfile({
+    required String userId,
+    required String name,
+    required String email,
+    String? photoPath,
+    bool removePhoto = false,
+  }) async {
+    final trimmedName = name.trim();
+    final normalizedEmail = email.trim().toLowerCase();
+    if (trimmedName.isEmpty) {
+      throw Exception('Name is required');
+    }
+    if (normalizedEmail.isEmpty) {
+      throw Exception('Email is required');
+    }
+
+    final users = _users();
+    final index = users.indexWhere((u) => u.id == userId);
+    if (index < 0) {
+      throw Exception('User not found');
+    }
+
+    final duplicateEmail = users.any((u) => u.id != userId && u.email.toLowerCase() == normalizedEmail);
+    if (duplicateEmail) {
+      throw Exception('Email already registered');
+    }
+
+    final current = users[index];
+    users[index] = current.copyWith(
+      name: trimmedName,
+      email: normalizedEmail,
+      photoPath: photoPath,
+      clearPhotoPath: removePhoto,
+    );
+    await storage.writeUsers(users.map((u) => u.toJson()).toList());
+    return users[index];
   }
 }

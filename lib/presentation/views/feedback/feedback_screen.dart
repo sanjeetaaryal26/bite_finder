@@ -86,6 +86,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                           children: [
                             DropdownButtonFormField<String?>(
                               initialValue: _restaurantId,
+                              isExpanded: true,
                               decoration: const InputDecoration(labelText: 'Restaurant (optional)'),
                               items: [
                                 const DropdownMenuItem<String?>(
@@ -95,7 +96,11 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                                 ...vm.restaurants.map(
                                   (r) => DropdownMenuItem<String?>(
                                     value: r.id,
-                                    child: Text(r.name),
+                                    child: Text(
+                                      r.name,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
                                   ),
                                 ),
                               ],
@@ -104,6 +109,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                             const SizedBox(height: 10),
                             DropdownButtonFormField<FeedbackType>(
                               initialValue: _type,
+                              isExpanded: true,
                               decoration: const InputDecoration(labelText: 'Type'),
                               items: FeedbackType.values
                                   .map((t) => DropdownMenuItem(value: t, child: Text(t.name.toUpperCase())))
@@ -141,10 +147,28 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                       else
                         ...vm.submissions.map(
                           (s) => Card(
-                            child: ListTile(
-                              title: Text(s.type.name.toUpperCase()),
-                              subtitle: Text('${s.message}\n${s.createdAt.split('T').first}'),
-                              isThreeLine: true,
+                            child: Padding(
+                              padding: const EdgeInsets.all(12),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    s.type.name.toUpperCase(),
+                                    style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    s.message,
+                                    maxLines: 5,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    s.createdAt.split('T').first,
+                                    style: Theme.of(context).textTheme.bodySmall,
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),

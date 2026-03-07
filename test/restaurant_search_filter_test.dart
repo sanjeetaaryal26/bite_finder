@@ -19,6 +19,84 @@ void main() {
       expect(result.any((r) => r.cuisines.map((c) => c.toLowerCase()).contains('nepali')), true);
     });
 
+    test('should include 4.0 rating when high rating filter enabled', () {
+      final result = RestaurantFilter.apply(
+        restaurants: MockRestaurantData.restaurants,
+        query: '',
+        selectedCuisine: 'All',
+        highRatingOnly: true,
+        sortBy: 'Top Rated',
+      );
+
+      expect(result.any((r) => r.ratingAvg == AppConstants.highRatingThreshold), true);
+      expect(result.every((r) => r.ratingAvg >= AppConstants.highRatingThreshold), true);
+    });
+
+    test('should match fuzzy typo in restaurant name', () {
+      final result = RestaurantFilter.apply(
+        restaurants: MockRestaurantData.restaurants,
+        query: 'himalayn',
+        selectedCuisine: 'All',
+        highRatingOnly: false,
+        sortBy: 'Top Rated',
+      );
+
+      expect(result, isNotEmpty);
+      expect(result.first.name, contains('Himalayan'));
+    });
+
+    test('should prioritize direct name matches for query', () {
+      final result = RestaurantFilter.apply(
+        restaurants: MockRestaurantData.restaurants,
+        query: 'everest',
+        selectedCuisine: 'All',
+        highRatingOnly: false,
+        sortBy: 'Top Rated',
+      );
+
+      expect(result, isNotEmpty);
+      expect(result.first.name, 'Everest Rooftop Dining');
+    });
+
+    test('should sort by top rated when query is empty', () {
+      final result = RestaurantFilter.apply(
+        restaurants: MockRestaurantData.restaurants,
+        query: '',
+        selectedCuisine: 'All',
+        highRatingOnly: false,
+        sortBy: 'Top Rated',
+      );
+
+      expect(result.first.ratingAvg >= result[1].ratingAvg, true);
+      expect(result.first.name, 'Everest Rooftop Dining');
+    });
+
+    test('should sort by most reviewed when requested', () {
+      final result = RestaurantFilter.apply(
+        restaurants: MockRestaurantData.restaurants,
+        query: '',
+        selectedCuisine: 'All',
+        highRatingOnly: false,
+        sortBy: 'Most Reviewed',
+      );
+
+      expect(result.first.ratingCount >= result[1].ratingCount, true);
+      expect(result.first.name, 'Everest Rooftop Dining');
+    });
+
+    test('nearest sort without user location should fall back to name order', () {
+      final result = RestaurantFilter.apply(
+        restaurants: MockRestaurantData.restaurants,
+        query: '',
+        selectedCuisine: 'All',
+        highRatingOnly: false,
+        sortBy: 'Nearest',
+      );
+
+      final sortedNames = result.map((r) => r.name).toList()..sort();
+      expect(result.map((r) => r.name).toList(), sortedNames);
+    });
+
     test('should sort nearest first when sortBy Nearest', () {
       final result = RestaurantFilter.apply(
         restaurants: MockRestaurantData.restaurants,
@@ -34,6 +112,19 @@ void main() {
       final first = result.first.distanceFrom(userLatitude: 27.7172, userLongitude: 85.3240)!;
       final second = result[1].distanceFrom(userLatitude: 27.7172, userLongitude: 85.3240)!;
       expect(first <= second, true);
+    });
+
+    test('should filter by selected cuisine case-insensitively', () {
+      final result = RestaurantFilter.apply(
+        restaurants: MockRestaurantData.restaurants,
+        query: '',
+        selectedCuisine: 'nepali',
+        highRatingOnly: false,
+        sortBy: 'Top Rated',
+      );
+
+      expect(result, isNotEmpty);
+      expect(result.every((r) => r.cuisines.any((c) => c.toLowerCase() == 'nepali')), true);
     });
 
     test('nearest sorting should be deterministic for equal distance entries', () {

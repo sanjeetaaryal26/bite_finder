@@ -2,45 +2,24 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 class AppScaffold extends StatelessWidget {
-  final Widget child;
-  const AppScaffold({super.key, required this.child});
+  final StatefulNavigationShell navigationShell;
+  const AppScaffold({super.key, required this.navigationShell});
 
-  int _indexFromLocation(BuildContext context) {
-    final location = GoRouterState.of(context).matchedLocation;
-    if (location.startsWith('/favorites')) return 1;
-    if (location.startsWith('/recommendations')) return 2;
-    if (location.startsWith('/feedback')) return 3;
-    if (location.startsWith('/profile')) return 4;
-    return 0;
+  void _onTap(int index) {
+    navigationShell.goBranch(
+      index,
+      initialLocation: index == navigationShell.currentIndex,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final index = _indexFromLocation(context);
-
     return Scaffold(
-      body: child,
+      body: navigationShell,
       bottomNavigationBar: NavigationBar(
-        selectedIndex: index,
-        onDestinationSelected: (value) {
-          switch (value) {
-            case 0:
-              context.go('/home');
-              break;
-            case 1:
-              context.go('/favorites');
-              break;
-            case 2:
-              context.go('/recommendations');
-              break;
-            case 3:
-              context.go('/feedback');
-              break;
-            case 4:
-              context.go('/profile');
-              break;
-          }
-        },
+        selectedIndex: navigationShell.currentIndex,
+        onDestinationSelected: _onTap,
+        labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
         destinations: const [
           NavigationDestination(icon: Icon(Icons.home_outlined), label: 'Home'),
           NavigationDestination(icon: Icon(Icons.favorite_outline), label: 'Favorites'),

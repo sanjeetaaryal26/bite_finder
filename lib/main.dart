@@ -19,6 +19,7 @@ import 'presentation/viewmodels/home_viewmodel.dart';
 import 'presentation/viewmodels/profile_viewmodel.dart';
 import 'presentation/viewmodels/recommendations_viewmodel.dart';
 import 'presentation/viewmodels/restaurant_detail_viewmodel.dart';
+import 'presentation/viewmodels/theme_viewmodel.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -83,14 +84,19 @@ class BiteFinderApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => RecommendationsViewModel(restaurantRepository)),
         ChangeNotifierProvider(create: (_) => FeedbackViewModel(feedbackRepository, restaurantRepository)),
         ChangeNotifierProvider(create: (_) => ProfileViewModel(restaurantRepository)),
+        ChangeNotifierProvider(create: (_) => ThemeViewModel()),
       ],
-      child: MaterialApp.router(
-        debugShowCheckedModeBanner: false,
-        title: AppConstants.appName,
-        theme: AppTheme.lightTheme(),
-        darkTheme: AppTheme.darkTheme(),
-        themeMode: ThemeMode.system,
-        routerConfig: router,
+      child: Consumer<ThemeViewModel>(
+        builder: (context, themeVm, _) {
+          return MaterialApp.router(
+            debugShowCheckedModeBanner: false,
+            title: AppConstants.appName,
+            theme: AppTheme.lightTheme(seedColor: themeVm.seedColor),
+            darkTheme: AppTheme.darkTheme(seedColor: themeVm.seedColor),
+            themeMode: ThemeMode.system,
+            routerConfig: router,
+          );
+        },
       ),
     );
   }
