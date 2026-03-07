@@ -47,7 +47,7 @@ class AuthViewModel extends ChangeNotifier {
       return true;
     } catch (e, st) {
       AppLogger.error(e, st, context: 'AuthViewModel.login');
-      _error = null;
+      _error = e.toString().replaceFirst('Exception: ', '');
       return false;
     } finally {
       _isLoading = false;
@@ -64,7 +64,7 @@ class AuthViewModel extends ChangeNotifier {
       return true;
     } catch (e, st) {
       AppLogger.error(e, st, context: 'AuthViewModel.register');
-      _error = null;
+      _error = e.toString().replaceFirst('Exception: ', '');
       return false;
     } finally {
       _isLoading = false;
@@ -79,6 +79,42 @@ class AuthViewModel extends ChangeNotifier {
     _currentUser = null;
     _isLoading = false;
     notifyListeners();
+  }
+
+  Future<bool> updateProfile({
+    required String name,
+    required String email,
+    String? photoPath,
+    bool removePhoto = false,
+  }) async {
+    final current = _currentUser;
+    if (current == null) {
+      _error = 'Please login again.';
+      notifyListeners();
+      return false;
+    }
+
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      _currentUser = await _authRepository.updateProfile(
+        userId: current.id,
+        name: name,
+        email: email,
+        photoPath: photoPath,
+        removePhoto: removePhoto,
+      );
+      return true;
+    } catch (e, st) {
+      AppLogger.error(e, st, context: 'AuthViewModel.updateProfile');
+      _error = e.toString().replaceFirst('Exception: ', '');
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 
   void clearError() {

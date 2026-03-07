@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/utils/id_generator.dart';
@@ -8,6 +11,7 @@ import '../../../data/models/review_model.dart';
 import '../../../data/models/user_model.dart';
 import '../../viewmodels/admin_viewmodel.dart';
 import '../../viewmodels/auth_viewmodel.dart';
+import '../../widgets/profile_editor_dialog.dart';
 import '../../widgets/state_widgets.dart';
 
 class AdminPanelScreen extends StatefulWidget {
@@ -30,6 +34,47 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
     });
   }
 
+  Future<void> _openProfileEditor(AuthViewModel authVm) async {
+    final user = authVm.currentUser;
+    if (user == null) {
+      return;
+    }
+    final updated = await showDialog<bool>(
+      context: context,
+      builder: (_) => ProfileEditorDialog(
+        user: user,
+        onSave: ({
+          required String name,
+          required String email,
+          String? photoPath,
+          bool removePhoto = false,
+        }) =>
+            authVm.updateProfile(
+          name: name,
+          email: email,
+          photoPath: photoPath,
+          removePhoto: removePhoto,
+        ),
+      ),
+    );
+    if (!mounted || updated != true) {
+      return;
+    }
+    await context.read<AdminViewModel>().loadAll();
+    if (!mounted) {
+      return;
+    }
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Admin profile updated')));
+  }
+
+  Future<void> _logout(AuthViewModel authVm) async {
+    await authVm.logout();
+    if (!mounted) {
+      return;
+    }
+    context.go('/login');
+  }
+
   @override
   Widget build(BuildContext context) {
     final vm = context.watch<AdminViewModel>();
@@ -41,6 +86,16 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
         appBar: AppBar(
           title: const Text('Admin Panel'),
           actions: [
+            IconButton(
+              tooltip: 'Edit Profile',
+              onPressed: authVm.isLoading ? null : () => _openProfileEditor(authVm),
+              icon: const Icon(Icons.account_circle_outlined),
+            ),
+            IconButton(
+              tooltip: 'Logout',
+              onPressed: authVm.isLoading ? null : () => _logout(authVm),
+              icon: const Icon(Icons.logout),
+            ),
             IconButton(
               tooltip: 'Refresh',
               onPressed: vm.isLoading ? null : () => vm.loadAll(),
@@ -65,17 +120,66 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                 constraints: const BoxConstraints(maxWidth: 1200),
                 child: vm.isLoading && vm.restaurants.isEmpty && vm.users.isEmpty
                     ? const LoadingState()
-                    : TabBarView(
+                    : Column(
                         children: [
-                          _RestaurantsTab(vm: vm),
-                          _UsersTab(vm: vm, currentUserId: authVm.currentUser?.id),
-                          _FeedbackTab(vm: vm),
-                          _ReviewsTab(vm: vm),
+                          _AdminAccountCard(user: authVm.currentUser),
+                          Expanded(
+                            child: TabBarView(
+                              children: [
+                                _RestaurantsTab(vm: vm),
+                                _UsersTab(vm: vm, currentUserId: authVm.currentUser?.id),
+                                _FeedbackTab(vm: vm),
+                                _ReviewsTab(vm: vm),
+                              ],
+                            ),
+                          ),
                         ],
                       ),
               ),
             );
           },
+        ),
+      ),
+    );
+  }
+}
+
+class _AdminAccountCard extends StatelessWidget {
+  final UserModel? user;
+
+  const _AdminAccountCard({required this.user});
+
+  @override
+  Widget build(BuildContext context) {
+    final current = user;
+    if (current == null) {
+      return const SizedBox.shrink();
+    }
+    final hasPhoto = current.photoPath != null && current.photoPath!.trim().isNotEmpty;
+    ImageProvider<Object>? imageProvider;
+    if (hasPhoto) {
+      if (current.photoPath!.startsWith('http://') || current.photoPath!.startsWith('https://')) {
+        imageProvider = NetworkImage(current.photoPath!);
+      } else {
+        imageProvider = FileImage(File(current.photoPath!));
+      }
+    }
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+      child: Card(
+        child: ListTile(
+          contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          leading: CircleAvatar(
+            radius: 24,
+            backgroundImage: imageProvider,
+            child: imageProvider == null ? const Icon(Icons.admin_panel_settings_outlined) : null,
+          ),
+          title: Text(current.name, style: Theme.of(context).textTheme.titleMedium),
+          subtitle: Text(
+            '${current.email}\nRole: ${current.role.name.toUpperCase()}',
+          ),
+          isThreeLine: true,
         ),
       ),
     );
@@ -189,6 +293,15 @@ class _UsersTab extends StatelessWidget {
               final nextRole = user.role == UserRole.admin ? UserRole.user : UserRole.admin;
               final trimmedName = user.name.trim();
               final initial = trimmedName.isEmpty ? '?' : trimmedName[0].toUpperCase();
+              final hasPhoto = user.photoPath != null && user.photoPath!.trim().isNotEmpty;
+              ImageProvider<Object>? imageProvider;
+              if (hasPhoto) {
+                if (user.photoPath!.startsWith('http://') || user.photoPath!.startsWith('https://')) {
+                  imageProvider = NetworkImage(user.photoPath!);
+                } else {
+                  imageProvider = FileImage(File(user.photoPath!));
+                }
+              }
 
               return Card(
                 margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
@@ -198,7 +311,10 @@ class _UsersTab extends StatelessWidget {
                     '${user.email}\nRole: ${user.role.name.toUpperCase()} • Created ${user.createdAt.split('T').first}',
                   ),
                   isThreeLine: true,
-                  leading: CircleAvatar(child: Text(initial)),
+                  leading: CircleAvatar(
+                    backgroundImage: imageProvider,
+                    child: imageProvider == null ? Text(initial) : null,
+                  ),
                   trailing: Wrap(
                     spacing: 2,
                     children: [
@@ -283,44 +399,117 @@ class _FeedbackTab extends StatelessWidget {
   }
 }
 
-class _ReviewsTab extends StatelessWidget {
+class _ReviewsTab extends StatefulWidget {
   final AdminViewModel vm;
 
   const _ReviewsTab({required this.vm});
 
   @override
-  Widget build(BuildContext context) {
-    return vm.reviews.isEmpty
-        ? const EmptyState(message: 'No reviews available')
-        : ListView.builder(
-            itemCount: vm.reviews.length,
-            itemBuilder: (context, index) {
-              final review = vm.reviews[index];
-              final user = vm.userById(review.userId);
-              final restaurant = vm.restaurantById(review.restaurantId);
+  State<_ReviewsTab> createState() => _ReviewsTabState();
+}
 
-              return Card(
-                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                child: ListTile(
-                  title: Text('${review.rating}/5 - ${restaurant?.name ?? review.restaurantId}'),
-                  subtitle: Text('${review.comment}\nBy: ${user?.email ?? review.userId}'),
-                  isThreeLine: true,
-                  trailing: IconButton(
-                    onPressed: vm.isLoading
-                        ? null
-                        : () async {
-                            final ok = await vm.deleteReview(review.id);
-                            if (!context.mounted) return;
-                            if (ok) {
-                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Review deleted')));
-                            }
-                          },
-                    icon: const Icon(Icons.delete_outline),
+class _ReviewsTabState extends State<_ReviewsTab> {
+  final _queryController = TextEditingController();
+  int _minRating = 1;
+
+  @override
+  void dispose() {
+    _queryController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final vm = widget.vm;
+    final query = _queryController.text.trim().toLowerCase();
+    final filtered = vm.reviews.where((review) {
+      if (review.rating < _minRating) {
+        return false;
+      }
+      if (query.isEmpty) {
+        return true;
+      }
+      final user = vm.userById(review.userId);
+      final restaurant = vm.restaurantById(review.restaurantId);
+      return review.comment.toLowerCase().contains(query) ||
+          (user?.name.toLowerCase().contains(query) ?? false) ||
+          (user?.email.toLowerCase().contains(query) ?? false) ||
+          (restaurant?.name.toLowerCase().contains(query) ?? false);
+    }).toList();
+
+    final avgRating = filtered.isEmpty ? 0.0 : filtered.fold<int>(0, (sum, r) => sum + r.rating) / filtered.length;
+
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 10, 16, 4),
+          child: Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              SizedBox(
+                width: 280,
+                child: TextField(
+                  controller: _queryController,
+                  decoration: const InputDecoration(
+                    prefixIcon: Icon(Icons.search),
+                    hintText: 'Search comment, user or restaurant',
                   ),
+                  onChanged: (_) => setState(() {}),
                 ),
-              );
-            },
-          );
+              ),
+              DropdownButton<int>(
+                value: _minRating,
+                items: const [1, 2, 3, 4, 5]
+                    .map((r) => DropdownMenuItem<int>(value: r, child: Text('Min Rating: $r')))
+                    .toList(),
+                onChanged: (value) => setState(() => _minRating = value ?? 1),
+              ),
+              Chip(label: Text('Count: ${filtered.length}')),
+              Chip(label: Text('Avg: ${avgRating.toStringAsFixed(1)}')),
+            ],
+          ),
+        ),
+        Expanded(
+          child: filtered.isEmpty
+              ? const EmptyState(message: 'No reviews available for current filters')
+              : ListView.builder(
+                  itemCount: filtered.length,
+                  itemBuilder: (context, index) {
+                    final review = filtered[index];
+                    final user = vm.userById(review.userId);
+                    final restaurant = vm.restaurantById(review.restaurantId);
+
+                    return Card(
+                      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                      child: ListTile(
+                        title: Text('${review.rating}/5 - ${restaurant?.name ?? review.restaurantId}'),
+                        subtitle: Text(
+                          '${review.comment}\nBy: ${user?.name ?? user?.email ?? review.userId} • ${review.createdAt.split('T').first}',
+                        ),
+                        isThreeLine: true,
+                        trailing: IconButton(
+                          onPressed: vm.isLoading
+                              ? null
+                              : () async {
+                                  final ok = await vm.deleteReview(review.id);
+                                  if (!context.mounted) return;
+                                  if (ok) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text('Review deleted')),
+                                    );
+                                  }
+                                },
+                          icon: const Icon(Icons.delete_outline),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+        ),
+      ],
+    );
   }
 }
 

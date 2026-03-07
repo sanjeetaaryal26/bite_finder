@@ -17,6 +17,13 @@ abstract class AuthRepository {
   Future<List<UserModel>> getUsers();
   Future<void> updateUserRole({required String userId, required UserRole role});
   Future<void> deleteUser(String userId);
+  Future<UserModel> updateProfile({
+    required String userId,
+    required String name,
+    required String email,
+    String? photoPath,
+    bool removePhoto = false,
+  });
 
   Future<void> logout();
   Future<UserModel?> getCurrentUser();

@@ -7,6 +7,7 @@ class UserModel {
   final String passwordHash;
   final String createdAt;
   final UserRole role;
+  final String? photoPath;
 
   const UserModel({
     required this.id,
@@ -15,6 +16,7 @@ class UserModel {
     required this.passwordHash,
     required this.createdAt,
     required this.role,
+    required this.photoPath,
   });
 
   UserModel copyWith({
@@ -23,6 +25,8 @@ class UserModel {
     String? passwordHash,
     String? createdAt,
     UserRole? role,
+    String? photoPath,
+    bool clearPhotoPath = false,
   }) {
     return UserModel(
       id: id,
@@ -31,6 +35,7 @@ class UserModel {
       passwordHash: passwordHash ?? this.passwordHash,
       createdAt: createdAt ?? this.createdAt,
       role: role ?? this.role,
+      photoPath: clearPhotoPath ? null : (photoPath ?? this.photoPath),
     );
   }
 
@@ -41,6 +46,7 @@ class UserModel {
         passwordHash: json['passwordHash'] as String,
         createdAt: json['createdAt'] as String,
         role: (json['role'] as String?) == 'admin' ? UserRole.admin : UserRole.user,
+        photoPath: json['photoPath'] as String?,
       );
 
   Map<String, dynamic> toJson() => {
@@ -50,5 +56,6 @@ class UserModel {
         'passwordHash': passwordHash,
         'createdAt': createdAt,
         'role': role.name,
+        'photoPath': photoPath,
       };
 }
