@@ -42,9 +42,6 @@ class _FingerprintLoginState extends State<FingerprintLogin> {
         );
   }
 
-
-
-
   Future<void> _authenticate() async {
     var authenticated = false;
     try {

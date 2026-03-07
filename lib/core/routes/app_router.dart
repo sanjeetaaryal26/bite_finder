@@ -39,7 +39,6 @@ GoRouter buildRouter(AuthViewModel authViewModel) {
         return location == '/splash' ? null : '/splash';
       }
 
-  
       final disallowedExplicitAuthRoutes = [
         '/login',
         '/register',
