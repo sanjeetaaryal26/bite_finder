@@ -76,28 +76,48 @@ GoRouter buildRouter(AuthViewModel authViewModel) {
         path: '/admin',
         builder: (context, state) => const AdminPanelScreen(),
       ),
-      ShellRoute(
-        builder: (context, state, child) => AppScaffold(child: child),
-        routes: [
-          GoRoute(
-            path: '/home',
-            pageBuilder: (context, state) => const NoTransitionPage(child: HomeScreen()),
+      StatefulShellRoute.indexedStack(
+        builder: (context, state, navigationShell) => AppScaffold(navigationShell: navigationShell),
+        branches: [
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/home',
+                pageBuilder: (context, state) => const NoTransitionPage(child: HomeScreen()),
+              ),
+            ],
           ),
-          GoRoute(
-            path: '/favorites',
-            pageBuilder: (context, state) => const NoTransitionPage(child: FavoritesScreen()),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/favorites',
+                pageBuilder: (context, state) => const NoTransitionPage(child: FavoritesScreen()),
+              ),
+            ],
           ),
-          GoRoute(
-            path: '/recommendations',
-            pageBuilder: (context, state) => const NoTransitionPage(child: RecommendationsScreen()),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/recommendations',
+                pageBuilder: (context, state) => const NoTransitionPage(child: RecommendationsScreen()),
+              ),
+            ],
           ),
-          GoRoute(
-            path: '/feedback',
-            pageBuilder: (context, state) => const NoTransitionPage(child: FeedbackScreen()),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/feedback',
+                pageBuilder: (context, state) => const NoTransitionPage(child: FeedbackScreen()),
+              ),
+            ],
           ),
-          GoRoute(
-            path: '/profile',
-            pageBuilder: (context, state) => const NoTransitionPage(child: ProfileScreen()),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/profile',
+                pageBuilder: (context, state) => const NoTransitionPage(child: ProfileScreen()),
+              ),
+            ],
           ),
         ],
       ),
