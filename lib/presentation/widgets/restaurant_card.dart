@@ -22,7 +22,7 @@ class RestaurantCard extends StatelessWidget {
         : fallbackImage.trim();
     final isAssetImage = selectedImage.startsWith('assets/');
     final cardWidth = MediaQuery.of(context).size.width;
-    final imageHeight = (cardWidth * 0.5).clamp(170.0, 240.0);
+    final imageHeight = (cardWidth * 0.5).clamp(170.0, 240.0).toDouble();
 
     return Card(
       child: InkWell(
@@ -68,7 +68,7 @@ class RestaurantCard extends StatelessWidget {
                                 child: const CircularProgressIndicator(strokeWidth: 2),
                               );
                             },
-                            errorBuilder: (_, _, _) => Container(
+                            errorBuilder: (context, error, stackTrace) => Container(
                               height: imageHeight,
                               width: double.infinity,
                               color: Colors.black12,

@@ -53,7 +53,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
           child: const CircularProgressIndicator(strokeWidth: 2),
         );
       },
-      errorBuilder: (_, _, _) => Container(
+      errorBuilder: (context, error, stackTrace) => Container(
         height: height,
         color: Colors.black12,
         alignment: Alignment.center,
@@ -146,7 +146,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
             Builder(
               builder: (context) {
                 final width = MediaQuery.of(context).size.width;
-                final imageHeight = (width * 0.6).clamp(220.0, 300.0);
+                final imageHeight = (width * 0.6).clamp(220.0, 300.0).toDouble();
                 if (restaurant.photos.isEmpty) {
                   return ClipRRect(
                     borderRadius: BorderRadius.circular(16),
