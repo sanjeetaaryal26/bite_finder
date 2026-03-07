@@ -27,9 +27,9 @@ class ErrorState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.error_outline, size: 46),
+            const Icon(Icons.info_outline, size: 46),
             const SizedBox(height: 8),
-            Text(message, textAlign: TextAlign.center),
+            const Text('Content unavailable right now.', textAlign: TextAlign.center),
             if (onRetry != null) ...[
               const SizedBox(height: 10),
               FilledButton(onPressed: onRetry, child: const Text('Retry')),

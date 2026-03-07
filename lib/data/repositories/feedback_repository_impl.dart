@@ -7,17 +7,33 @@ class FeedbackRepositoryImpl implements FeedbackRepository {
 
   FeedbackRepositoryImpl(this.storage);
 
+  List<FeedbackModel> _list() => storage.readFeedback().map(FeedbackModel.fromJson).toList();
+
   @override
   Future<void> addFeedback(FeedbackModel feedback) async {
-    final list = storage.readFeedback().map(FeedbackModel.fromJson).toList();
+    final list = _list();
     list.add(feedback);
     await storage.writeFeedback(list.map((e) => e.toJson()).toList());
   }
 
   @override
   Future<List<FeedbackModel>> getFeedbackByUser(String userId) async {
-    final list = storage.readFeedback().map(FeedbackModel.fromJson).where((f) => f.userId == userId).toList();
+    final list = _list().where((f) => f.userId == userId).toList();
     list.sort((a, b) => b.createdAt.compareTo(a.createdAt));
     return list;
+  }
+
+  @override
+  Future<List<FeedbackModel>> getAllFeedback() async {
+    final list = _list();
+    list.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    return list;
+  }
+
+  @override
+  Future<void> deleteFeedback(String feedbackId) async {
+    final list = _list();
+    list.removeWhere((f) => f.id == feedbackId);
+    await storage.writeFeedback(list.map((e) => e.toJson()).toList());
   }
 }

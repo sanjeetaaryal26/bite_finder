@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/utils/app_logger.dart';
 import '../../core/utils/id_generator.dart';
 import '../../data/models/restaurant_model.dart';
 import '../../data/models/review_model.dart';
@@ -31,8 +32,9 @@ class RestaurantDetailViewModel extends ChangeNotifier {
       _restaurant = await _restaurantRepository.getRestaurantById(restaurantId);
       _reviews = await _restaurantRepository.getReviewsByRestaurant(restaurantId);
       _isFavorite = await _restaurantRepository.isFavorite(userId, restaurantId);
-    } catch (e) {
-      _error = e.toString();
+    } catch (e, st) {
+      AppLogger.error(e, st, context: 'RestaurantDetailViewModel.load');
+      _error = null;
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -66,7 +68,7 @@ class RestaurantDetailViewModel extends ChangeNotifier {
     final normalizedComment = comment.trim();
     final normalizedRating = rating.clamp(1, 5);
     if (normalizedComment.length < 5) {
-      _error = 'Comment is too short';
+      _error = null;
       notifyListeners();
       return false;
     }
@@ -84,8 +86,9 @@ class RestaurantDetailViewModel extends ChangeNotifier {
       );
       await load(restaurantId: _restaurant!.id, userId: userId);
       return true;
-    } catch (e) {
-      _error = e.toString();
+    } catch (e, st) {
+      AppLogger.error(e, st, context: 'RestaurantDetailViewModel.addReview');
+      _error = null;
       notifyListeners();
       return false;
     }

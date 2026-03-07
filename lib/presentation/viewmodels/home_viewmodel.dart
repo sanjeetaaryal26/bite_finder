@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/constants/app_constants.dart';
 import '../../core/services/location_service.dart';
+import '../../core/utils/app_logger.dart';
 import '../../core/utils/id_generator.dart';
 import '../../data/models/restaurant_model.dart';
 import '../../data/models/search_history_model.dart';
@@ -42,8 +43,9 @@ class HomeViewModel extends ChangeNotifier {
     try {
       _locationError = null;
       _userLocation = await _locationService.getCurrentLocation();
-    } catch (e) {
-      _locationError = e.toString();
+    } catch (e, st) {
+      AppLogger.error(e, st, context: 'HomeViewModel.location');
+      _locationError = null;
     }
   }
 
@@ -82,8 +84,9 @@ class HomeViewModel extends ChangeNotifier {
         );
         _lastStoredQuery = normalizedQuery;
       }
-    } catch (e) {
-      _error = e.toString();
+    } catch (e, st) {
+      AppLogger.error(e, st, context: 'HomeViewModel.load');
+      _error = null;
     } finally {
       _isLoading = false;
       notifyListeners();

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/utils/app_logger.dart';
 import '../../data/models/user_model.dart';
 import '../../domain/repositories/auth_repository.dart';
 
@@ -18,15 +19,18 @@ class AuthViewModel extends ChangeNotifier {
   String? get error => _error;
   bool get isLoggedIn => _currentUser != null;
   bool get initialized => _initialized;
+  bool get isAdmin => _currentUser?.role == UserRole.admin;
 
   Future<void> initialize() async {
     _isLoading = true;
     notifyListeners();
     try {
+      await _authRepository.ensureAdminAccount();
       _currentUser = await _authRepository.getCurrentUser();
       _error = null;
-    } catch (e) {
-      _error = e.toString();
+    } catch (e, st) {
+      AppLogger.error(e, st, context: 'AuthViewModel.initialize');
+      _error = null;
     } finally {
       _initialized = true;
       _isLoading = false;
@@ -41,8 +45,9 @@ class AuthViewModel extends ChangeNotifier {
     try {
       _currentUser = await _authRepository.login(email: email.trim(), password: password);
       return true;
-    } catch (e) {
-      _error = e.toString().replaceFirst('Exception: ', '');
+    } catch (e, st) {
+      AppLogger.error(e, st, context: 'AuthViewModel.login');
+      _error = null;
       return false;
     } finally {
       _isLoading = false;
@@ -57,8 +62,9 @@ class AuthViewModel extends ChangeNotifier {
     try {
       await _authRepository.register(name: name.trim(), email: email.trim(), password: password);
       return true;
-    } catch (e) {
-      _error = e.toString().replaceFirst('Exception: ', '');
+    } catch (e, st) {
+      AppLogger.error(e, st, context: 'AuthViewModel.register');
+      _error = null;
       return false;
     } finally {
       _isLoading = false;

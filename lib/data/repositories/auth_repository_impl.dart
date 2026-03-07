@@ -8,12 +8,36 @@ import '../sources/local_storage_service.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
   final LocalStorageService storage;
+  static const String _defaultAdminEmail = 'admin@bitefinder.app';
+  static const String _defaultAdminPassword = 'Admin@12345';
 
   AuthRepositoryImpl(this.storage);
 
+  List<UserModel> _users() => storage.readUsers().map(UserModel.fromJson).toList();
+
+  @override
+  Future<void> ensureAdminAccount() async {
+    final users = _users();
+    final exists = users.any((u) => u.email.toLowerCase() == _defaultAdminEmail.toLowerCase());
+    if (exists) {
+      return;
+    }
+
+    final admin = UserModel(
+      id: 'u_admin',
+      name: 'Bite Admin',
+      email: _defaultAdminEmail,
+      passwordHash: HashUtils.hashPassword(_defaultAdminPassword),
+      createdAt: DateTime.now().toIso8601String(),
+      role: UserRole.admin,
+    );
+    users.add(admin);
+    await storage.writeUsers(users.map((u) => u.toJson()).toList());
+  }
+
   @override
   Future<UserModel> register({required String name, required String email, required String password}) async {
-    final users = storage.readUsers().map(UserModel.fromJson).toList();
+    final users = _users();
     final existing = users.where((u) => u.email.toLowerCase() == email.toLowerCase()).toList();
 
     if (existing.isNotEmpty) {
@@ -26,6 +50,7 @@ class AuthRepositoryImpl implements AuthRepository {
       email: email.trim().toLowerCase(),
       passwordHash: HashUtils.hashPassword(password),
       createdAt: DateTime.now().toIso8601String(),
+      role: UserRole.user,
     );
 
     users.add(user);
@@ -35,7 +60,7 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<UserModel> login({required String email, required String password}) async {
-    final users = storage.readUsers().map(UserModel.fromJson).toList();
+    final users = _users();
     final targetEmail = email.trim().toLowerCase();
     final hash = HashUtils.hashPassword(password);
 
@@ -62,7 +87,7 @@ class AuthRepositoryImpl implements AuthRepository {
       return null;
     }
 
-    final users = storage.readUsers().map(UserModel.fromJson).toList();
+    final users = _users();
     final matches = users.where((u) => u.id == sessionId).toList();
 
     if (matches.isEmpty) {
@@ -74,5 +99,45 @@ class AuthRepositoryImpl implements AuthRepository {
     }
 
     return matches.first;
+  }
+
+  @override
+  Future<List<UserModel>> getUsers() async {
+    final users = _users();
+    users.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    return users;
+  }
+
+  @override
+  Future<void> updateUserRole({required String userId, required UserRole role}) async {
+    final users = _users();
+    final index = users.indexWhere((u) => u.id == userId);
+    if (index < 0) {
+      throw Exception('User not found');
+    }
+    users[index] = users[index].copyWith(role: role);
+    await storage.writeUsers(users.map((u) => u.toJson()).toList());
+  }
+
+  @override
+  Future<void> deleteUser(String userId) async {
+    final users = _users();
+    final matches = users.where((u) => u.id == userId).toList();
+    if (matches.isEmpty) {
+      return;
+    }
+    final user = matches.first;
+    final adminCount = users.where((u) => u.role == UserRole.admin).length;
+    if (user.role == UserRole.admin && adminCount <= 1) {
+      throw Exception('Cannot delete the last admin user');
+    }
+
+    users.removeWhere((u) => u.id == userId);
+    await storage.writeUsers(users.map((u) => u.toJson()).toList());
+
+    final sessionUserId = storage.readSessionUserId();
+    if (sessionUserId == userId) {
+      await storage.clearSessionUserId();
+    }
   }
 }

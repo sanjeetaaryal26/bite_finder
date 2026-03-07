@@ -22,7 +22,7 @@ Bite Finder is a Flutter mobile app that helps users discover restaurants using 
 - Material 3 + light/dark theme support
 
 ## Folder Structure
-```
+```text
 lib/
   core/
     constants/
@@ -42,9 +42,18 @@ lib/
   main.dart
 ```
 
-## Run
-1. `flutter pub get`
-2. `flutter run`
+## Quick Start (Fresh Machine)
+1. Install Flutter (stable) and Android Studio first:
+   - Flutter: https://docs.flutter.dev/get-started/install
+   - Android Studio: https://developer.android.com/studio
+2. Verify environment:
+   - `flutter doctor`
+   - Resolve any items marked with `✗`.
+3. Clone and run:
+   - `git clone <your-repo-url>`
+   - `cd bites/bite_finder`
+   - `flutter pub get`
+   - `flutter run`
 
 ## Local Setup
 - Full environment setup steps are documented in `docs/SETUP.md`.

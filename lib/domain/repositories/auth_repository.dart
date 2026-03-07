@@ -1,6 +1,8 @@
 import '../../data/models/user_model.dart';
 
 abstract class AuthRepository {
+  Future<void> ensureAdminAccount();
+
   Future<UserModel> register({
     required String name,
     required String email,
@@ -11,6 +13,10 @@ abstract class AuthRepository {
     required String email,
     required String password,
   });
+
+  Future<List<UserModel>> getUsers();
+  Future<void> updateUserRole({required String userId, required UserRole role});
+  Future<void> deleteUser(String userId);
 
   Future<void> logout();
   Future<UserModel?> getCurrentUser();

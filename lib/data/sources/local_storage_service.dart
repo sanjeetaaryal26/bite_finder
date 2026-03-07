@@ -9,6 +9,9 @@ class LocalStorageService {
   static const _favoritesKey = 'favorites';
   static const _feedbackKey = 'feedback';
   static const _searchHistoryKey = 'search_history';
+  static const _adminRestaurantsKey = 'admin_restaurants';
+  static const _adminUpdatedRestaurantsKey = 'admin_updated_restaurants';
+  static const _deletedRestaurantIdsKey = 'deleted_restaurant_ids';
 
   final SharedPreferences prefs;
 
@@ -41,6 +44,19 @@ class LocalStorageService {
 
   List<Map<String, dynamic>> readSearchHistory() => readList(_searchHistoryKey);
   Future<void> writeSearchHistory(List<Map<String, dynamic>> value) => writeList(_searchHistoryKey, value);
+
+  List<Map<String, dynamic>> readAdminRestaurants() => readList(_adminRestaurantsKey);
+  Future<void> writeAdminRestaurants(List<Map<String, dynamic>> value) => writeList(_adminRestaurantsKey, value);
+
+  List<Map<String, dynamic>> readAdminUpdatedRestaurants() => readList(_adminUpdatedRestaurantsKey);
+  Future<void> writeAdminUpdatedRestaurants(List<Map<String, dynamic>> value) => writeList(_adminUpdatedRestaurantsKey, value);
+
+  List<String> readDeletedRestaurantIds() {
+    final raw = prefs.getStringList(_deletedRestaurantIdsKey);
+    return raw ?? [];
+  }
+
+  Future<void> writeDeletedRestaurantIds(List<String> ids) => prefs.setStringList(_deletedRestaurantIdsKey, ids);
 
   String? readSessionUserId() => prefs.getString(_sessionUserIdKey);
   Future<void> writeSessionUserId(String userId) => prefs.setString(_sessionUserIdKey, userId);

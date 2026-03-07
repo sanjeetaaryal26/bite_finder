@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/utils/app_logger.dart';
 import '../../data/models/restaurant_model.dart';
 import '../../domain/repositories/restaurant_repository.dart';
 
@@ -23,8 +24,9 @@ class RecommendationsViewModel extends ChangeNotifier {
 
     try {
       _recommendations = await _restaurantRepository.getRecommendations(userId);
-    } catch (e) {
-      _error = e.toString();
+    } catch (e, st) {
+      AppLogger.error(e, st, context: 'RecommendationsViewModel.load');
+      _error = null;
     } finally {
       _isLoading = false;
       notifyListeners();

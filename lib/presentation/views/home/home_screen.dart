@@ -43,142 +43,170 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Discover Restaurants')),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText: 'Search by name, cuisine, specialty, bestseller',
-                prefixIcon: const Icon(Icons.search),
-                suffixIcon: _searchController.text.isEmpty
-                    ? null
-                    : IconButton(
-                        icon: const Icon(Icons.clear),
-                        onPressed: () {
-                          _searchController.clear();
-                          vm.updateQuery('', userId);
-                          setState(() {});
-                        },
-                      ),
-              ),
-              textInputAction: TextInputAction.search,
-              onChanged: (_) => setState(() {}),
-              onSubmitted: (v) => vm.updateQuery(v.trim(), userId),
-            ),
-          ),
-          SizedBox(
-            height: 42,
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              children: [
-                _CuisineChip(
-                  label: 'All',
-                  selected: vm.selectedCuisine == 'All',
-                  onTap: () => vm.updateCuisine('All', userId),
-                ),
-                ...AppConstants.cuisines.map(
-                  (c) => _CuisineChip(
-                    label: c,
-                    selected: vm.selectedCuisine == c,
-                    onTap: () => vm.updateCuisine(c, userId),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-            child: Row(
-              children: [
-                Expanded(
-                  child: DropdownButtonFormField<String>(
-                    initialValue: vm.sortBy,
-                    decoration: const InputDecoration(labelText: 'Sort by'),
-                    items: AppConstants.sortOptions
-                        .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-                        .toList(),
-                    onChanged: (value) {
-                      if (value != null) {
-                        vm.updateSort(value, userId);
-                      }
-                    },
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Row(
-                  children: [
-                    Checkbox(
-                      value: vm.highRatingOnly,
-                      onChanged: (_) => vm.toggleHighRating(userId),
-                    ),
-                    const Text('>= 4.0'),
-                  ],
-                ),
-                IconButton(
-                  tooltip: 'Reset filters',
-                  onPressed: () {
-                    _searchController.clear();
-                    vm.resetFilters(userId);
-                    setState(() {});
-                  },
-                  icon: const Icon(Icons.restart_alt),
-                ),
-              ],
-            ),
-          ),
-          if (vm.sortBy == 'Nearest' && vm.locationError != null)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-              child: Row(
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          return Align(
+            alignment: Alignment.topCenter,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 1100),
+              child: Column(
                 children: [
-                  const Icon(Icons.location_off, size: 18),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      vm.locationError!,
-                      style: Theme.of(context).textTheme.bodySmall,
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                    child: TextField(
+                      controller: _searchController,
+                      decoration: InputDecoration(
+                        hintText: 'Search by name, cuisine, specialty, bestseller',
+                        prefixIcon: const Icon(Icons.search),
+                        suffixIcon: _searchController.text.isEmpty
+                            ? null
+                            : IconButton(
+                                icon: const Icon(Icons.clear),
+                                onPressed: () {
+                                  _searchController.clear();
+                                  vm.updateQuery('', userId);
+                                  setState(() {});
+                                },
+                              ),
+                      ),
+                      textInputAction: TextInputAction.search,
+                      onChanged: (_) => setState(() {}),
+                      onSubmitted: (v) => vm.updateQuery(v.trim(), userId),
                     ),
                   ),
-                  TextButton(
-                    onPressed: () async {
-                      await vm.refreshLocation();
-                      if (!context.mounted) return;
-                      await vm.load(userId);
-                    },
-                    child: const Text('Retry'),
+                  SizedBox(
+                    height: 42,
+                    child: ListView(
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      children: [
+                        _CuisineChip(
+                          label: 'All',
+                          selected: vm.selectedCuisine == 'All',
+                          onTap: () => vm.updateCuisine('All', userId),
+                        ),
+                        ...AppConstants.cuisines.map(
+                          (c) => _CuisineChip(
+                            label: c,
+                            selected: vm.selectedCuisine == c,
+                            onTap: () => vm.updateCuisine(c, userId),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                    child: constraints.maxWidth < 700
+                        ? Wrap(
+                            alignment: WrapAlignment.spaceBetween,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            spacing: 10,
+                            runSpacing: 10,
+                            children: [
+                              SizedBox(
+                                width: constraints.maxWidth < 360 ? constraints.maxWidth : constraints.maxWidth - 32,
+                                child: DropdownButtonFormField<String>(
+                                  initialValue: vm.sortBy,
+                                  decoration: const InputDecoration(labelText: 'Sort by'),
+                                  items: AppConstants.sortOptions
+                                      .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                                      .toList(),
+                                  onChanged: (value) {
+                                    if (value != null) {
+                                      vm.updateSort(value, userId);
+                                    }
+                                  },
+                                ),
+                              ),
+                              Wrap(
+                                crossAxisAlignment: WrapCrossAlignment.center,
+                                spacing: 4,
+                                children: [
+                                  Checkbox(
+                                    value: vm.highRatingOnly,
+                                    onChanged: (_) => vm.toggleHighRating(userId),
+                                  ),
+                                  const Text('>= 4.0'),
+                                  IconButton(
+                                    tooltip: 'Reset filters',
+                                    onPressed: () {
+                                      _searchController.clear();
+                                      vm.resetFilters(userId);
+                                      setState(() {});
+                                    },
+                                    icon: const Icon(Icons.restart_alt),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          )
+                        : Row(
+                            children: [
+                              Expanded(
+                                child: DropdownButtonFormField<String>(
+                                  initialValue: vm.sortBy,
+                                  decoration: const InputDecoration(labelText: 'Sort by'),
+                                  items: AppConstants.sortOptions
+                                      .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                                      .toList(),
+                                  onChanged: (value) {
+                                    if (value != null) {
+                                      vm.updateSort(value, userId);
+                                    }
+                                  },
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Row(
+                                children: [
+                                  Checkbox(
+                                    value: vm.highRatingOnly,
+                                    onChanged: (_) => vm.toggleHighRating(userId),
+                                  ),
+                                  const Text('>= 4.0'),
+                                ],
+                              ),
+                              IconButton(
+                                tooltip: 'Reset filters',
+                                onPressed: () {
+                                  _searchController.clear();
+                                  vm.resetFilters(userId);
+                                  setState(() {});
+                                },
+                                icon: const Icon(Icons.restart_alt),
+                              ),
+                            ],
+                          ),
+                  ),
+                  Expanded(
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 250),
+                      child: vm.isLoading
+                          ? const LoadingState()
+                          : vm.restaurants.isEmpty
+                              ? const EmptyState(message: 'No restaurants found for current filters.')
+                              : ListView.builder(
+                                  key: ValueKey('${vm.query}_${vm.selectedCuisine}_${vm.sortBy}_${vm.highRatingOnly}'),
+                                  itemCount: vm.restaurants.length,
+                                  itemBuilder: (context, index) {
+                                    final restaurant = vm.restaurants[index];
+                                    return Padding(
+                                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                                      child: RestaurantCard(
+                                        restaurant: restaurant,
+                                        onTap: () => context.push('/restaurant/${restaurant.id}'),
+                                      ),
+                                    );
+                                  },
+                                ),
+                    ),
                   ),
                 ],
               ),
             ),
-          Expanded(
-            child: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 250),
-              child: vm.isLoading
-                  ? const LoadingState()
-                  : vm.error != null
-                      ? ErrorState(message: vm.error!, onRetry: () => vm.load(userId))
-                      : vm.restaurants.isEmpty
-                          ? const EmptyState(message: 'No restaurants found for current filters.')
-                          : ListView.builder(
-                              key: ValueKey('${vm.query}_${vm.selectedCuisine}_${vm.sortBy}_${vm.highRatingOnly}'),
-                              itemCount: vm.restaurants.length,
-                              itemBuilder: (context, index) {
-                                final restaurant = vm.restaurants[index];
-                                return Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                                  child: RestaurantCard(
-                                    restaurant: restaurant,
-                                    onTap: () => context.push('/restaurant/${restaurant.id}'),
-                                  ),
-                                );
-                              },
-                            ),
-            ),
-          ),
-        ],
+          );
+        },
       ),
     );
   }

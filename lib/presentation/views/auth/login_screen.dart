@@ -35,7 +35,7 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!mounted) return;
 
     if (success) {
-      context.go('/home');
+      context.go(vm.isAdmin ? '/admin' : '/home');
     } else if (vm.error != null) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(vm.error!)));
     }

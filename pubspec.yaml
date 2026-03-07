@@ -26,3 +26,6 @@ flutter:
   uses-material-design: true
   assets:
     - data/osm/kathmandu_restaurants.json
+    - assets/images/logo.png
+    - assets/images/bite_logo.png
+    - assets/images/bite_logo_icon_1024.png

@@ -37,12 +37,26 @@ class RestaurantRepositoryImpl implements RestaurantRepository {
   }
 
   List<ReviewModel> _allReviews() => storage.readReviews().map(ReviewModel.fromJson).toList();
+  List<RestaurantModel> _adminCreatedRestaurants() => storage.readAdminRestaurants().map(RestaurantModel.fromJson).toList();
+  List<RestaurantModel> _adminUpdatedRestaurants() => storage.readAdminUpdatedRestaurants().map(RestaurantModel.fromJson).toList();
+  List<String> _deletedRestaurantIds() => storage.readDeletedRestaurantIds();
 
   @override
   Future<List<RestaurantModel>> getRestaurants() async {
     final base = await OsmRestaurantData.restaurants();
+    final created = _adminCreatedRestaurants();
+    final updatedMap = {for (final item in _adminUpdatedRestaurants()) item.id: item};
+    final deleted = _deletedRestaurantIds().toSet();
+
+    final merged = <RestaurantModel>[
+      ...base,
+      ...created,
+    ].where((restaurant) => !deleted.contains(restaurant.id)).map((restaurant) {
+      return updatedMap[restaurant.id] ?? restaurant;
+    }).toList();
+
     final reviews = _allReviews();
-    return _withDynamicRatings(base, reviews);
+    return _withDynamicRatings(merged, reviews);
   }
 
   @override
@@ -93,6 +107,20 @@ class RestaurantRepositoryImpl implements RestaurantRepository {
   Future<void> addReview(ReviewModel review) async {
     final reviews = _allReviews();
     reviews.add(review);
+    await storage.writeReviews(reviews.map((r) => r.toJson()).toList());
+  }
+
+  @override
+  Future<List<ReviewModel>> getAllReviews() async {
+    final reviews = _allReviews();
+    reviews.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    return reviews;
+  }
+
+  @override
+  Future<void> deleteReview(String reviewId) async {
+    final reviews = _allReviews();
+    reviews.removeWhere((r) => r.id == reviewId);
     await storage.writeReviews(reviews.map((r) => r.toJson()).toList());
   }
 
@@ -206,5 +234,61 @@ class RestaurantRepositoryImpl implements RestaurantRepository {
     final reviews = _allReviews().where((r) => r.userId == userId).toList();
     reviews.sort((a, b) => b.createdAt.compareTo(a.createdAt));
     return reviews;
+  }
+
+  @override
+  Future<void> createRestaurant(RestaurantModel restaurant) async {
+    final created = _adminCreatedRestaurants();
+    created.add(restaurant);
+    await storage.writeAdminRestaurants(created.map((r) => r.toJson()).toList());
+
+    final deleted = _deletedRestaurantIds().toSet();
+    if (deleted.remove(restaurant.id)) {
+      await storage.writeDeletedRestaurantIds(deleted.toList());
+    }
+  }
+
+  @override
+  Future<void> updateRestaurant(RestaurantModel restaurant) async {
+    final created = _adminCreatedRestaurants();
+    final createdIndex = created.indexWhere((r) => r.id == restaurant.id);
+    if (createdIndex >= 0) {
+      created[createdIndex] = restaurant;
+      await storage.writeAdminRestaurants(created.map((r) => r.toJson()).toList());
+      return;
+    }
+
+    final updated = _adminUpdatedRestaurants();
+    final updatedIndex = updated.indexWhere((r) => r.id == restaurant.id);
+    if (updatedIndex >= 0) {
+      updated[updatedIndex] = restaurant;
+    } else {
+      updated.add(restaurant);
+    }
+    await storage.writeAdminUpdatedRestaurants(updated.map((r) => r.toJson()).toList());
+  }
+
+  @override
+  Future<void> deleteRestaurant(String restaurantId) async {
+    final created = _adminCreatedRestaurants();
+    final createdLengthBefore = created.length;
+    created.removeWhere((r) => r.id == restaurantId);
+    final removedFromCreated = created.length != createdLengthBefore;
+    if (removedFromCreated) {
+      await storage.writeAdminRestaurants(created.map((r) => r.toJson()).toList());
+    }
+
+    final updated = _adminUpdatedRestaurants();
+    final updatedLengthBefore = updated.length;
+    updated.removeWhere((r) => r.id == restaurantId);
+    final removedFromUpdated = updated.length != updatedLengthBefore;
+    if (removedFromUpdated) {
+      await storage.writeAdminUpdatedRestaurants(updated.map((r) => r.toJson()).toList());
+    }
+
+    final deleted = _deletedRestaurantIds().toSet();
+    if (deleted.add(restaurantId)) {
+      await storage.writeDeletedRestaurantIds(deleted.toList());
+    }
   }
 }

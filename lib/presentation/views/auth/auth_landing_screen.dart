@@ -14,21 +14,21 @@ class AuthLandingScreen extends StatelessWidget {
         width: double.infinity,
         child: Column(
           children: [
-            const SizedBox(height: 26),
-            const Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                'Bite',
-                style: TextStyle(
-                  color: Color(0xFFF6C94D),
-                  fontSize: 76,
-                  height: 0.9,
-                  fontWeight: FontWeight.w900,
-                  fontStyle: FontStyle.italic,
-                ),
-              ),
+            const SizedBox(height: 20),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final logoWidth = (constraints.maxWidth * 0.62).clamp(160.0, 260.0);
+                return Align(
+                  alignment: Alignment.centerLeft,
+                  child: Image.asset(
+                    'assets/images/logo.png',
+                    width: logoWidth,
+                    fit: BoxFit.contain,
+                  ),
+                );
+              },
             ),
-            const SizedBox(height: 84),
+            const SizedBox(height: 56),
             Row(
               children: [
                 Expanded(

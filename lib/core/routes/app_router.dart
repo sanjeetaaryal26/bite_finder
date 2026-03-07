@@ -6,6 +6,7 @@ import '../../presentation/views/auth/auth_landing_screen.dart';
 import '../../presentation/views/auth/forgot_password_screen.dart';
 import '../../presentation/views/auth/login_screen.dart';
 import '../../presentation/views/auth/register_screen.dart';
+import '../../presentation/views/admin/admin_panel_screen.dart';
 import '../../presentation/views/favorites/favorites_screen.dart';
 import '../../presentation/views/feedback/feedback_screen.dart';
 import '../../presentation/views/home/home_screen.dart';
@@ -22,6 +23,7 @@ GoRouter buildRouter(AuthViewModel authViewModel) {
     refreshListenable: authViewModel,
     redirect: (context, state) {
       final isLoggedIn = authViewModel.isLoggedIn;
+      final isAdmin = authViewModel.isAdmin;
       final location = state.matchedLocation;
 
       final isAuthRoute = location == '/auth' ||
@@ -38,8 +40,13 @@ GoRouter buildRouter(AuthViewModel authViewModel) {
         return '/auth';
       }
 
-      if (isLoggedIn && (location == '/auth' || location == '/login' || location == '/register' || location == '/forgot-password')) {
+      final isAdminRoute = location == '/admin';
+      if (isAdminRoute && !isAdmin) {
         return '/home';
+      }
+
+      if (isLoggedIn && (location == '/auth' || location == '/login' || location == '/register' || location == '/forgot-password')) {
+        return isAdmin ? '/admin' : '/home';
       }
 
       return null;
@@ -64,6 +71,10 @@ GoRouter buildRouter(AuthViewModel authViewModel) {
       GoRoute(
         path: '/forgot-password',
         builder: (context, state) => const ForgotPasswordScreen(),
+      ),
+      GoRoute(
+        path: '/admin',
+        builder: (context, state) => const AdminPanelScreen(),
       ),
       ShellRoute(
         builder: (context, state, child) => AppScaffold(child: child),

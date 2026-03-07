@@ -120,12 +120,19 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
             const SizedBox(height: 12),
             Text(restaurant.description),
             const SizedBox(height: 8),
-            Row(
+            Wrap(
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 12,
+              runSpacing: 6,
               children: [
-                const Icon(Icons.star, color: Colors.amber),
-                const SizedBox(width: 4),
-                Text('${restaurant.ratingAvg} (${restaurant.ratingCount} reviews)'),
-                const SizedBox(width: 12),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.star, color: Colors.amber),
+                    const SizedBox(width: 4),
+                    Text('${restaurant.ratingAvg} (${restaurant.ratingCount} reviews)'),
+                  ],
+                ),
                 Text(restaurant.priceRange),
               ],
             ),

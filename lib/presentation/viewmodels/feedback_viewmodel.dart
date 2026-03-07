@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/utils/app_logger.dart';
 import '../../core/utils/id_generator.dart';
 import '../../data/models/feedback_model.dart';
 import '../../data/models/restaurant_model.dart';
@@ -30,8 +31,9 @@ class FeedbackViewModel extends ChangeNotifier {
     try {
       _restaurants = await _restaurantRepository.getRestaurants();
       _submissions = await _feedbackRepository.getFeedbackByUser(userId);
-    } catch (e) {
-      _error = e.toString();
+    } catch (e, st) {
+      AppLogger.error(e, st, context: 'FeedbackViewModel.load');
+      _error = null;
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -64,8 +66,9 @@ class FeedbackViewModel extends ChangeNotifier {
       _submissions = await _feedbackRepository.getFeedbackByUser(userId);
       _submissions.sort((a, b) => b.createdAt.compareTo(a.createdAt));
       return true;
-    } catch (e) {
-      _error = e.toString();
+    } catch (e, st) {
+      AppLogger.error(e, st, context: 'FeedbackViewModel.submit');
+      _error = null;
       return false;
     } finally {
       _isLoading = false;

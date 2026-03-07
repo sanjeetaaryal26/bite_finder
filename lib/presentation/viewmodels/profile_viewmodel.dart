@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/constants/app_constants.dart';
+import '../../core/utils/app_logger.dart';
 import '../../data/models/review_model.dart';
 import '../../data/models/search_history_model.dart';
 import '../../domain/repositories/restaurant_repository.dart';
@@ -28,8 +29,9 @@ class ProfileViewModel extends ChangeNotifier {
     try {
       _recentSearches = (await _restaurantRepository.getSearchHistory(userId)).take(AppConstants.maxProfileItems).toList();
       _reviews = (await _restaurantRepository.getReviewsByUser(userId)).take(AppConstants.maxProfileItems).toList();
-    } catch (e) {
-      _error = e.toString();
+    } catch (e, st) {
+      AppLogger.error(e, st, context: 'ProfileViewModel.load');
+      _error = null;
     } finally {
       _isLoading = false;
       notifyListeners();

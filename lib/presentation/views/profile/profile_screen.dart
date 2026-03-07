@@ -74,6 +74,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             subtitle: Text(r.createdAt.split('T').first),
                           )),
                     const SizedBox(height: 20),
+                    if (authVm.isAdmin)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: FilledButton.tonalIcon(
+                          onPressed: () => context.push('/admin'),
+                          icon: const Icon(Icons.admin_panel_settings_outlined),
+                          label: const Text('Open Admin Panel'),
+                        ),
+                      ),
                     FilledButton.tonalIcon(
                       onPressed: () async {
                         await authVm.logout();

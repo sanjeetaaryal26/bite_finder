@@ -17,8 +17,10 @@ abstract class RestaurantRepository {
 
   Future<List<ReviewModel>> getReviewsByRestaurant(String restaurantId);
   Future<List<ReviewModel>> getReviewsByUser(String userId);
+  Future<List<ReviewModel>> getAllReviews();
 
   Future<void> addReview(ReviewModel review);
+  Future<void> deleteReview(String reviewId);
 
   Future<void> addFavorite(String userId, String restaurantId);
   Future<void> removeFavorite(String userId, String restaurantId);
@@ -30,4 +32,8 @@ abstract class RestaurantRepository {
   Future<List<SearchHistoryModel>> getSearchHistory(String userId);
 
   Future<List<RestaurantModel>> getRecommendations(String userId);
+
+  Future<void> createRestaurant(RestaurantModel restaurant);
+  Future<void> updateRestaurant(RestaurantModel restaurant);
+  Future<void> deleteRestaurant(String restaurantId);
 }
