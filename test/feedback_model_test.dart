@@ -1,4 +1,4 @@
-import 'package:birdle/data/models/feedback_model.dart';
+import 'package:birdle/features/feedback/data/models/feedback_model.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

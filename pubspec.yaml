@@ -17,13 +17,10 @@ dependencies:
   geolocator: ^14.0.2
   flutter_map: ^8.2.2
   latlong2: ^0.9.1
-<<<<<<< HEAD
   light_sensor: ^3.0.2
   local_auth: ^3.0.1
   sensors_plus: ^3.0.0
-=======
   image_picker: ^1.1.2
->>>>>>> 84af9e232ec1fb1bb7fe10b4d217a4b8df148dcf
 
 dev_dependencies:
   flutter_test:
@@ -34,9 +31,6 @@ flutter:
   uses-material-design: true
   assets:
     - data/osm/kathmandu_restaurants.json
-<<<<<<< HEAD
     - assets/images/
-=======
     - assets/images/logo.png
     - assets/images/nepal_restaurant_images_20/nepal_restaurant_images/
->>>>>>> 84af9e232ec1fb1bb7fe10b4d217a4b8df148dcf

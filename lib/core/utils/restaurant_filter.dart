@@ -1,5 +1,5 @@
-import '../../data/models/restaurant_model.dart';
-import '../constants/app_constants.dart';
+import 'package:birdle/features/restaurant/data/models/restaurant_model.dart';
+import 'package:birdle/core/constants/app_constants.dart';
 
 class RestaurantFilter {
   static String _normalize(String value) {

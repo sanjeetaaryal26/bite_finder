@@ -1,10 +1,10 @@
 import 'package:birdle/core/services/location_service.dart';
-import 'package:birdle/data/models/restaurant_model.dart';
-import 'package:birdle/data/models/review_model.dart';
-import 'package:birdle/data/models/search_history_model.dart';
-import 'package:birdle/data/sources/mock_restaurant_data.dart';
-import 'package:birdle/domain/repositories/restaurant_repository.dart';
-import 'package:birdle/presentation/viewmodels/home_viewmodel.dart';
+import 'package:birdle/features/restaurant/data/models/restaurant_model.dart';
+import 'package:birdle/features/restaurant/data/models/review_model.dart';
+import 'package:birdle/features/search/data/models/search_history_model.dart';
+import 'package:birdle/features/restaurant/data/data_source/mock_restaurant_data.dart';
+import 'package:birdle/features/restaurant/domain/repositories/restaurant_repository.dart';
+import 'package:birdle/features/home/presentation/view_model/home_viewmodel.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 class _FakeRestaurantRepository implements RestaurantRepository {
