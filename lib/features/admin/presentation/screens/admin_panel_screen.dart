@@ -7,7 +7,6 @@ import 'package:provider/provider.dart';
 import 'package:birdle/core/constants/app_constants.dart';
 import 'package:birdle/core/utils/id_generator.dart';
 import 'package:birdle/core/utils/restaurant_filter.dart';
-import 'package:birdle/features/feedback/data/models/feedback_model.dart';
 import 'package:birdle/features/restaurant/data/models/restaurant_model.dart';
 import 'package:birdle/features/restaurant/data/models/review_model.dart';
 import 'package:birdle/features/auth/data/models/user_model.dart';
@@ -83,7 +82,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
     final authVm = context.watch<AuthViewModel>();
 
     return DefaultTabController(
-      length: 5,
+      length: 4,
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Admin Panel'),
@@ -109,7 +108,6 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
             tabs: [
               Tab(text: 'Restaurants'),
               Tab(text: 'Users'),
-              Tab(text: 'Feedback'),
               Tab(text: 'Reviews'),
               Tab(text: 'Activity'),
             ],
@@ -131,7 +129,6 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                               children: [
                                 _RestaurantsTab(vm: vm),
                                 _UsersTab(vm: vm, currentUserId: authVm.currentUser?.id),
-                                _FeedbackTab(vm: vm),
                                 _ReviewsTab(vm: vm),
                                 _ActivityTab(vm: vm),
                               ],
@@ -465,51 +462,6 @@ class _UsersTab extends StatelessWidget {
                         ),
                       ],
                     ),
-                  ),
-                ),
-              );
-            },
-          );
-  }
-}
-
-class _FeedbackTab extends StatelessWidget {
-  final AdminViewModel vm;
-
-  const _FeedbackTab({required this.vm});
-
-  @override
-  Widget build(BuildContext context) {
-    return vm.feedback.isEmpty
-        ? const EmptyState(message: 'No feedback submissions')
-        : ListView.builder(
-            itemCount: vm.feedback.length,
-            itemBuilder: (context, index) {
-              final entry = vm.feedback[index];
-              final user = vm.userById(entry.userId);
-              final restaurant = entry.restaurantId == null ? null : vm.restaurantById(entry.restaurantId!);
-
-              return Card(
-                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                child: ListTile(
-                  title: Text(entry.type == FeedbackType.complaint ? 'Complaint' : 'Feedback'),
-                  subtitle: Text(
-                    '${entry.message}\nUser: ${user?.email ?? entry.userId}${restaurant == null ? '' : '\nRestaurant: ${restaurant.name}'}',
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  isThreeLine: true,
-                  trailing: IconButton(
-                    onPressed: vm.isLoading
-                        ? null
-                        : () async {
-                            final ok = await vm.deleteFeedback(entry.id);
-                            if (!context.mounted) return;
-                            if (ok) {
-                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Submission deleted')));
-                            }
-                          },
-                    icon: const Icon(Icons.delete_outline),
                   ),
                 ),
               );
