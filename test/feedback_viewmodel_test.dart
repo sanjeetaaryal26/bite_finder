@@ -65,7 +65,7 @@ void main() {
 
       expect(ok, false);
       expect(vm.isLoading, false);
-      expect(vm.error, isNull);
+      expect(vm.error, 'Unable to submit feedback. Please try again.');
     });
   });
 }

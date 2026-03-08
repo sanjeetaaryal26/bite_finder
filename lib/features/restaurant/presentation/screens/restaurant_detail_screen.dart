@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import 'package:birdle/core/utils/restaurant_image_resolver.dart';
 import 'package:birdle/features/auth/presentation/view_model/auth_viewmodel.dart';
 import 'package:birdle/features/restaurant/presentation/view_model/restaurant_detail_viewmodel.dart';
 import 'package:birdle/core/widgets/state_widgets.dart';
@@ -139,6 +140,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
         body: const EmptyState(message: 'Restaurant not found'),
       );
     }
+    final photoGallery = RestaurantImageResolver.detailGalleryFor(restaurant);
 
     return Scaffold(
       appBar: AppBar(
@@ -159,7 +161,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
               builder: (context) {
                 final width = MediaQuery.of(context).size.width;
                 final imageHeight = (width * 0.6).clamp(220.0, 300.0).toDouble();
-                if (restaurant.photos.isEmpty) {
+                if (photoGallery.isEmpty) {
                   return ClipRRect(
                     borderRadius: BorderRadius.circular(16),
                     child: Container(
@@ -173,13 +175,13 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                 return SizedBox(
                   height: imageHeight,
                   child: PageView.builder(
-                    itemCount: restaurant.photos.length,
+                    itemCount: photoGallery.length,
                     itemBuilder: (context, index) {
                       return Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 4),
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(16),
-                          child: _buildPhoto(restaurant.photos[index], imageHeight),
+                          child: _buildPhoto(photoGallery[index], imageHeight),
                         ),
                       );
                     },

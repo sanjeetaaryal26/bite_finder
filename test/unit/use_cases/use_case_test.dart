@@ -11,6 +11,8 @@ RestaurantModel _r({
   required List<String> cuisines,
   required double rating,
   required int reviews,
+  List<String> specialties = const ['Momo'],
+  List<String> bestSellers = const ['Steam Momo'],
   double? lat,
   double? lon,
 }) {
@@ -20,13 +22,13 @@ RestaurantModel _r({
     cuisines: cuisines,
     location: 'Kathmandu',
     description: 'desc',
-    specialties: const ['Momo'],
+    specialties: specialties,
     services: const ['Dine-in'],
     ratingAvg: rating,
     ratingCount: reviews,
     priceRange: '\$',
     photos: const [],
-    bestSellers: const ['Steam Momo'],
+    bestSellers: bestSellers,
     latitude: lat,
     longitude: lon,
   );
@@ -78,7 +80,15 @@ void main() {
     test('RestaurantFilter matches fuzzy query against name tokens', () {
       final data = [
         _r(id: '1', name: 'Momo Corner', cuisines: const ['Nepali'], rating: 4.2, reviews: 40),
-        _r(id: '2', name: 'Pizza Hub', cuisines: const ['Pizza'], rating: 4.6, reviews: 100),
+        _r(
+          id: '2',
+          name: 'Pizza Hub',
+          cuisines: const ['Pizza'],
+          rating: 4.6,
+          reviews: 100,
+          specialties: const ['Margherita'],
+          bestSellers: const ['Pepperoni Pizza'],
+        ),
       ];
 
       final out = RestaurantFilter.apply(

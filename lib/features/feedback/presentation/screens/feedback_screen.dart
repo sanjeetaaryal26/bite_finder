@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import 'package:birdle/features/feedback/data/models/feedback_model.dart';
+import 'package:birdle/features/restaurant/data/models/review_model.dart';
 import 'package:birdle/features/auth/presentation/view_model/auth_viewmodel.dart';
 import 'package:birdle/features/feedback/presentation/view_model/feedback_viewmodel.dart';
 import 'package:birdle/core/widgets/state_widgets.dart';
@@ -70,6 +72,17 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
     }
   }
 
+  String _restaurantNameFor(FeedbackViewModel vm, String? restaurantId) {
+    if (restaurantId == null || restaurantId.trim().isEmpty) {
+      return 'General (No Restaurant)';
+    }
+    final match = vm.restaurants.where((r) => r.id == restaurantId).toList();
+    if (match.isEmpty) {
+      return 'Restaurant: $restaurantId';
+    }
+    return match.first.name;
+  }
+
   @override
   Widget build(BuildContext context) {
     final vm = context.watch<FeedbackViewModel>();
@@ -78,6 +91,10 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
       return const Scaffold(body: LoadingState());
     }
     final userId = user.id;
+    final mergedSubmissions = [
+      ...vm.submissions.map<_SubmissionItem>((f) => _SubmissionItem.feedback(f)),
+      ...vm.reviews.map<_SubmissionItem>((r) => _SubmissionItem.review(r)),
+    ]..sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
     return Scaffold(
       appBar: AppBar(title: const Text('Feedback & Complaint')),
@@ -154,31 +171,52 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                       const Divider(height: 28),
                       Text('My Submissions', style: Theme.of(context).textTheme.titleMedium),
                       const SizedBox(height: 8),
-                      if (vm.submissions.isEmpty)
+                      if (mergedSubmissions.isEmpty)
                         const EmptyState(message: 'No submissions yet')
                       else
-                        ...vm.submissions.map(
-                          (s) => Card(
+                        ...mergedSubmissions.map(
+                          (item) => Card(
                             child: Padding(
                               padding: const EdgeInsets.all(12),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    s.type.name.toUpperCase(),
+                                    item.title,
                                     style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
                                   ),
                                   const SizedBox(height: 6),
+                                  if (item.isReview) ...[
+                                    Row(
+                                      children: [
+                                        const Icon(Icons.star, color: Colors.amber, size: 18),
+                                        const SizedBox(width: 6),
+                                        Text('${item.review!.rating}/5'),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 6),
+                                  ],
+                                  Text(item.message),
+                                  const SizedBox(height: 6),
                                   Text(
-                                    s.message,
-                                    maxLines: 5,
-                                    overflow: TextOverflow.ellipsis,
+                                    _restaurantNameFor(vm, item.restaurantId),
+                                    style: Theme.of(context).textTheme.bodySmall,
                                   ),
                                   const SizedBox(height: 6),
                                   Text(
-                                    s.createdAt.split('T').first,
+                                    item.createdAt.split('T').first,
                                     style: Theme.of(context).textTheme.bodySmall,
                                   ),
+                                  if (item.isReview && item.restaurantId != null) ...[
+                                    const SizedBox(height: 8),
+                                    Align(
+                                      alignment: Alignment.centerRight,
+                                      child: TextButton(
+                                        onPressed: () => context.push('/restaurant/${item.restaurantId}'),
+                                        child: const Text('Open Restaurant'),
+                                      ),
+                                    ),
+                                  ],
                                 ],
                               ),
                             ),
@@ -188,5 +226,22 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                   ),
                 ),
     );
+  }
+}
+
+class _SubmissionItem {
+  final FeedbackModel? feedback;
+  final ReviewModel? review;
+
+  _SubmissionItem.feedback(this.feedback) : review = null;
+  _SubmissionItem.review(this.review) : feedback = null;
+
+  bool get isReview => review != null;
+  String get createdAt => isReview ? review!.createdAt : feedback!.createdAt;
+  String? get restaurantId => isReview ? review!.restaurantId : feedback!.restaurantId;
+  String get message => isReview ? review!.comment : feedback!.message;
+  String get title {
+    if (isReview) return 'REVIEW';
+    return feedback!.type.name.toUpperCase();
   }
 }
