@@ -51,7 +51,11 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                             child: RestaurantCard(
                               restaurant: restaurant,
-                              onTap: () => context.push('/restaurant/${restaurant.id}'),
+                              onTap: () async {
+                                await context.push('/restaurant/${restaurant.id}');
+                                if (!context.mounted) return;
+                                await vm.refresh(userId);
+                              },
                             ),
                           );
                         },

@@ -4,6 +4,7 @@ import 'package:birdle/core/utils/app_logger.dart';
 import 'package:birdle/features/feedback/data/models/feedback_model.dart';
 import 'package:birdle/features/restaurant/data/models/restaurant_model.dart';
 import 'package:birdle/features/restaurant/data/models/review_model.dart';
+import 'package:birdle/features/search/data/models/search_history_model.dart';
 import 'package:birdle/features/auth/data/models/user_model.dart';
 import 'package:birdle/features/auth/domain/repositories/auth_repository.dart';
 import 'package:birdle/features/feedback/domain/repositories/feedback_repository.dart';
@@ -23,6 +24,9 @@ class AdminViewModel extends ChangeNotifier {
   List<UserModel> _users = [];
   List<FeedbackModel> _feedback = [];
   List<ReviewModel> _reviews = [];
+  List<SearchHistoryModel> _recentSearches = [];
+  Map<String, int> _reviewCountByUser = {};
+  Map<String, int> _searchCountByUser = {};
 
   bool get isLoading => _isLoading;
   String? get error => _error;
@@ -31,6 +35,7 @@ class AdminViewModel extends ChangeNotifier {
   List<UserModel> get users => _users;
   List<FeedbackModel> get feedback => _feedback;
   List<ReviewModel> get reviews => _reviews;
+  List<SearchHistoryModel> get recentSearches => _recentSearches;
 
   Future<void> loadAll() async {
     _isLoading = true;
@@ -42,6 +47,23 @@ class AdminViewModel extends ChangeNotifier {
       _users = await _authRepository.getUsers();
       _feedback = await _feedbackRepository.getAllFeedback();
       _reviews = await _restaurantRepository.getAllReviews();
+      _reviewCountByUser = <String, int>{};
+      for (final review in _reviews) {
+        _reviewCountByUser[review.userId] = (_reviewCountByUser[review.userId] ?? 0) + 1;
+      }
+
+      final historiesByUser = await Future.wait(
+        _users.map((user) => _restaurantRepository.getSearchHistory(user.id)),
+      );
+      final merged = <SearchHistoryModel>[];
+      _searchCountByUser = <String, int>{};
+      for (var i = 0; i < _users.length; i++) {
+        final history = historiesByUser[i];
+        _searchCountByUser[_users[i].id] = history.length;
+        merged.addAll(history);
+      }
+      merged.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      _recentSearches = merged;
     } catch (e, st) {
       AppLogger.error(e, st, context: 'AdminViewModel.loadAll');
       _error = null;
@@ -157,4 +179,8 @@ class AdminViewModel extends ChangeNotifier {
     }
     return matches.first;
   }
+
+  int reviewsGivenCountForUser(String userId) => _reviewCountByUser[userId] ?? 0;
+
+  int recentSearchCountForUser(String userId) => _searchCountByUser[userId] ?? 0;
 }

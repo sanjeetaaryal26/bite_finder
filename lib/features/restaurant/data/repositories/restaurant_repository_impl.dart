@@ -49,8 +49,8 @@ class RestaurantRepositoryImpl implements RestaurantRepository {
     final deleted = _deletedRestaurantIds().toSet();
 
     final merged = <RestaurantModel>[
-      ...base,
       ...created,
+      ...base,
     ].where((restaurant) => !deleted.contains(restaurant.id)).map((restaurant) {
       return updatedMap[restaurant.id] ?? restaurant;
     }).toList();

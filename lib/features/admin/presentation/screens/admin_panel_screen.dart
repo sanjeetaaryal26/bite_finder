@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import 'package:birdle/core/constants/app_constants.dart';
 import 'package:birdle/core/utils/id_generator.dart';
+import 'package:birdle/core/utils/restaurant_filter.dart';
 import 'package:birdle/features/feedback/data/models/feedback_model.dart';
 import 'package:birdle/features/restaurant/data/models/restaurant_model.dart';
 import 'package:birdle/features/restaurant/data/models/review_model.dart';
@@ -81,7 +83,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
     final authVm = context.watch<AuthViewModel>();
 
     return DefaultTabController(
-      length: 4,
+      length: 5,
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Admin Panel'),
@@ -109,6 +111,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
               Tab(text: 'Users'),
               Tab(text: 'Feedback'),
               Tab(text: 'Reviews'),
+              Tab(text: 'Activity'),
             ],
           ),
         ),
@@ -130,6 +133,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                                 _UsersTab(vm: vm, currentUserId: authVm.currentUser?.id),
                                 _FeedbackTab(vm: vm),
                                 _ReviewsTab(vm: vm),
+                                _ActivityTab(vm: vm),
                               ],
                             ),
                           ),
@@ -186,10 +190,28 @@ class _AdminAccountCard extends StatelessWidget {
   }
 }
 
-class _RestaurantsTab extends StatelessWidget {
+class _RestaurantsTab extends StatefulWidget {
   final AdminViewModel vm;
 
   const _RestaurantsTab({required this.vm});
+
+  @override
+  State<_RestaurantsTab> createState() => _RestaurantsTabState();
+}
+
+class _RestaurantsTabState extends State<_RestaurantsTab> {
+  static const _adminSortOptions = ['Top Rated', 'Most Reviewed'];
+
+  final _queryController = TextEditingController();
+  String _selectedCuisine = 'All';
+  String _sortBy = _adminSortOptions.first;
+  bool _highRatingOnly = false;
+
+  @override
+  void dispose() {
+    _queryController.dispose();
+    super.dispose();
+  }
 
   Future<void> _openEditor(BuildContext context, {RestaurantModel? existing}) async {
     final result = await showDialog<RestaurantModel>(
@@ -200,6 +222,7 @@ class _RestaurantsTab extends StatelessWidget {
       return;
     }
 
+    final vm = widget.vm;
     final ok = existing == null ? await vm.createRestaurant(result) : await vm.updateRestaurant(result);
     if (!context.mounted) {
       return;
@@ -212,37 +235,103 @@ class _RestaurantsTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final vm = widget.vm;
+    final filtered = RestaurantFilter.apply(
+      restaurants: vm.restaurants,
+      query: _queryController.text.trim(),
+      selectedCuisine: _selectedCuisine,
+      highRatingOnly: _highRatingOnly,
+      sortBy: _sortBy,
+    );
+
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-          child: Wrap(
-            runSpacing: 8,
-            spacing: 12,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            alignment: WrapAlignment.spaceBetween,
+          padding: const EdgeInsets.fromLTRB(16, 10, 16, 4),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Total: ${vm.restaurants.length}', style: Theme.of(context).textTheme.titleMedium),
-              FilledButton.icon(
-                onPressed: vm.isLoading ? null : () => _openEditor(context),
-                icon: const Icon(Icons.add),
-                label: const Text('Add'),
+              Wrap(
+                spacing: 10,
+                runSpacing: 10,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  SizedBox(
+                    width: 320,
+                    child: TextField(
+                      controller: _queryController,
+                      decoration: InputDecoration(
+                        prefixIcon: const Icon(Icons.search),
+                        hintText: 'Search name, cuisine, specialty, location',
+                        suffixIcon: _queryController.text.isEmpty
+                            ? null
+                            : IconButton(
+                                onPressed: () {
+                                  _queryController.clear();
+                                  setState(() {});
+                                },
+                                icon: const Icon(Icons.clear),
+                              ),
+                      ),
+                      onChanged: (_) => setState(() {}),
+                    ),
+                  ),
+                  DropdownButton<String>(
+                    value: _selectedCuisine,
+                    items: ['All', ...AppConstants.cuisines]
+                        .map((c) => DropdownMenuItem<String>(value: c, child: Text('Cuisine: $c')))
+                        .toList(),
+                    onChanged: (value) => setState(() => _selectedCuisine = value ?? 'All'),
+                  ),
+                  DropdownButton<String>(
+                    value: _sortBy,
+                    items: _adminSortOptions
+                        .map((value) => DropdownMenuItem<String>(value: value, child: Text('Sort: $value')))
+                        .toList(),
+                    onChanged: (value) => setState(() => _sortBy = value ?? _adminSortOptions.first),
+                  ),
+                  FilterChip(
+                    selected: _highRatingOnly,
+                    label: const Text('>= 4.0'),
+                    onSelected: (_) => setState(() => _highRatingOnly = !_highRatingOnly),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                runSpacing: 8,
+                spacing: 12,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                alignment: WrapAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Showing ${filtered.length} of ${vm.restaurants.length}',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  FilledButton.icon(
+                    onPressed: vm.isLoading ? null : () => _openEditor(context),
+                    icon: const Icon(Icons.add),
+                    label: const Text('Add'),
+                  ),
+                ],
               ),
             ],
           ),
         ),
         Expanded(
-          child: vm.restaurants.isEmpty
-              ? const EmptyState(message: 'No restaurants available')
+          child: filtered.isEmpty
+              ? const EmptyState(message: 'No restaurants match the current filters')
               : ListView.builder(
-                  itemCount: vm.restaurants.length,
+                  itemCount: filtered.length,
                   itemBuilder: (context, index) {
-                    final restaurant = vm.restaurants[index];
+                    final restaurant = filtered[index];
                     return Card(
                       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                       child: ListTile(
                         title: Text(restaurant.name),
-                        subtitle: Text('${restaurant.location}\n${restaurant.cuisines.join(', ')}'),
+                        subtitle: Text(
+                          '${restaurant.location}\n${restaurant.cuisines.join(', ')} • ${restaurant.ratingAvg} (${restaurant.ratingCount})',
+                        ),
                         isThreeLine: true,
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -308,7 +397,9 @@ class _UsersTab extends StatelessWidget {
                 child: ListTile(
                   title: Text(user.name),
                   subtitle: Text(
-                    '${user.email}\nRole: ${user.role.name.toUpperCase()} • Created ${user.createdAt.split('T').first}',
+                    '${user.email}\n'
+                    'Role: ${user.role.name.toUpperCase()} • Created ${user.createdAt.split('T').first}\n'
+                    'Reviews given: ${vm.reviewsGivenCountForUser(user.id)} • Recent searches: ${vm.recentSearchCountForUser(user.id)}',
                   ),
                   isThreeLine: true,
                   leading: CircleAvatar(
@@ -508,6 +599,62 @@ class _ReviewsTabState extends State<_ReviewsTab> {
                   },
                 ),
         ),
+      ],
+    );
+  }
+}
+
+class _ActivityTab extends StatelessWidget {
+  final AdminViewModel vm;
+
+  const _ActivityTab({required this.vm});
+
+  @override
+  Widget build(BuildContext context) {
+    final recentSearches = vm.recentSearches.take(40).toList();
+    final usersByReview = [...vm.users]
+      ..sort(
+        (a, b) => vm.reviewsGivenCountForUser(b.id).compareTo(vm.reviewsGivenCountForUser(a.id)),
+      );
+
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
+      children: [
+        Text('Recent Searches', style: Theme.of(context).textTheme.titleMedium),
+        const SizedBox(height: 8),
+        if (recentSearches.isEmpty)
+          const Card(child: ListTile(title: Text('No recent searches found')))
+        else
+          ...recentSearches.map((entry) {
+            final user = vm.userById(entry.userId);
+            return Card(
+              child: ListTile(
+                leading: const Icon(Icons.search),
+                title: Text(entry.query),
+                subtitle: Text(
+                  '${user?.name ?? user?.email ?? entry.userId} • ${entry.createdAt.split('T').first}',
+                ),
+              ),
+            );
+          }),
+        const SizedBox(height: 14),
+        Text('Reviews Given By User', style: Theme.of(context).textTheme.titleMedium),
+        const SizedBox(height: 8),
+        if (usersByReview.isEmpty)
+          const Card(child: ListTile(title: Text('No users found')))
+        else
+          ...usersByReview.map(
+            (user) => Card(
+              child: ListTile(
+                leading: const Icon(Icons.rate_review_outlined),
+                title: Text(user.name),
+                subtitle: Text(
+                  '${user.email}\nReviews: ${vm.reviewsGivenCountForUser(user.id)} • Searches: ${vm.recentSearchCountForUser(user.id)}',
+                ),
+                isThreeLine: true,
+              ),
+            ),
+          ),
       ],
     );
   }
