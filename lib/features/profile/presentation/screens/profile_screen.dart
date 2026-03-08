@@ -27,7 +27,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool _loaded = false;
   bool _fingerprintEnabled = false;
   StreamSubscription<AccelerometerEvent>? _accelSub;
-  double _lastMagnitude = 0.0;
   DateTime _lastShakeAt = DateTime.fromMillisecondsSinceEpoch(0);
   static const double _gravity = 9.80665;
   // Threshold in m/s^2 for gravity-compensated acceleration to consider a shake.
@@ -39,8 +38,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (_loaded) return;
+    final currentUser = context.read<AuthViewModel>().currentUser;
+    if (currentUser == null) {
+      return;
+    }
     _loaded = true;
-    final userId = context.read<AuthViewModel>().currentUser!.id;
+    final userId = currentUser.id;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<ProfileViewModel>().load(userId);
     });
@@ -63,7 +66,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
         sqrt(event.x * event.x + event.y * event.y + event.z * event.z);
     // Remove gravity to get linear acceleration magnitude
     final linearAccel = (magnitude - _gravity).abs();
-    _lastMagnitude = magnitude;
     final now = DateTime.now();
     if (kDebugMode) {
       debugPrint(
@@ -91,7 +93,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     final authVm = context.watch<AuthViewModel>();
     final profileVm = context.watch<ProfileViewModel>();
-    final user = authVm.currentUser!;
+    final user = authVm.currentUser;
+    if (user == null) {
+      return const Scaffold(body: LoadingState());
+    }
     final hasPhoto = user.photoPath != null && user.photoPath!.trim().isNotEmpty;
     ImageProvider<Object>? photoProvider;
     if (hasPhoto) {
@@ -124,8 +129,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               child: hasPhoto ? null : const Icon(Icons.person, size: 42),
                             ),
                             const SizedBox(height: 10),
-                            Text(user.name, style: Theme.of(context).textTheme.titleLarge),
-                            Text(user.email, style: Theme.of(context).textTheme.bodyMedium),
+                            Text(
+                              user.name,
+                              style: Theme.of(context).textTheme.titleLarge,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            Text(
+                              user.email,
+                              style: Theme.of(context).textTheme.bodyMedium,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                             const SizedBox(height: 4),
                             Text(
                               'Role: ${user.role.name.toUpperCase()}',
@@ -163,8 +178,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                         if (!mounted || updated != true) {
                                           return;
                                         }
-                                        final userId = authVm.currentUser!.id;
-                                        await profileVm.load(userId);
+                                        final refreshedUser = authVm.currentUser;
+                                        if (refreshedUser != null) {
+                                          await profileVm.load(refreshedUser.id);
+                                        }
                                         if (!mounted) return;
                                         ScaffoldMessenger.of(context).showSnackBar(
                                           const SnackBar(content: Text('Profile updated')),
@@ -188,7 +205,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ...profileVm.recentSearches.map((s) => ListTile(
                             contentPadding: EdgeInsets.zero,
                             leading: const Icon(Icons.search),
-                            title: Text(s.query),
+                            title: Text(
+                              s.query,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                             subtitle: Text(s.createdAt.split('T').first),
                           )),
                     const Divider(height: 28),
@@ -202,7 +223,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             contentPadding: EdgeInsets.zero,
                             leading:
                                 CircleAvatar(child: Text(r.rating.toString())),
-                            title: Text(r.comment),
+                            title: Text(
+                              r.comment,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                             subtitle: Text(r.createdAt.split('T').first),
                           )),
                     const SizedBox(height: 20),
@@ -223,7 +248,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           const Text('Use fingerprint to login next time'),
                       onChanged: (val) async {
                         final authVmLocal = context.read<AuthViewModel>();
-                        final user = authVmLocal.currentUser!;
+                        final user = authVmLocal.currentUser;
+                        if (user == null) {
+                          return;
+                        }
                         if (val) {
                           // enabling: ask for password to store and require local biometric auth
                           final passwordController = TextEditingController();
@@ -303,7 +331,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         } else {
                           // disabling: remove stored credentials
                           final authVmLocal2 = context.read<AuthViewModel>();
-                          final user2 = authVmLocal2.currentUser!;
+                          final user2 = authVmLocal2.currentUser;
+                          if (user2 == null) {
+                            return;
+                          }
                           final storage = const FlutterSecureStorage();
                           final key = 'fingerprint_credentials_' + user2.id;
                           await storage.delete(key: key);

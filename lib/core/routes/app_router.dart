@@ -39,11 +39,6 @@ GoRouter buildRouter(AuthViewModel authViewModel) {
         return location == '/splash' ? null : '/splash';
       }
 
-      final disallowedExplicitAuthRoutes = [
-        '/login',
-        '/register',
-        '/forgot-password'
-      ];
       // If fingerprint login is enabled for a user, require the fingerprint
       // unlock screen until the app records a successful biometric unlock.
       if (fingerprintUserId != null &&

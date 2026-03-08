@@ -81,20 +81,35 @@ class RestaurantCard extends StatelessWidget {
               Text(
                 restaurant.name,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
               const SizedBox(height: 4),
               Text(
                 restaurant.location,
                 style: Theme.of(context).textTheme.bodySmall,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
               const SizedBox(height: 6),
-              Row(
+              Wrap(
+                spacing: 10,
+                runSpacing: 4,
+                crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
-                  const Icon(Icons.star, size: 18, color: Colors.amber),
-                  const SizedBox(width: 4),
-                  Text('${restaurant.ratingAvg} (${restaurant.ratingCount})'),
-                  const SizedBox(width: 10),
-                  Text(restaurant.priceRange),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.star, size: 18, color: Colors.amber),
+                      const SizedBox(width: 4),
+                      Text('${restaurant.ratingAvg} (${restaurant.ratingCount})'),
+                    ],
+                  ),
+                  Text(
+                    restaurant.priceRange,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ],
               ),
               const SizedBox(height: 6),

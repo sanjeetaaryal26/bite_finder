@@ -1,19 +1,10 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:birdle/features/auth/presentation/view_model/auth_viewmodel.dart';
-
-enum _SupportState {
-  unknown,
-  supported,
-  unsupported,
-}
 
 class FingerprintLogin extends StatefulWidget {
   const FingerprintLogin({super.key});
@@ -24,30 +15,13 @@ class FingerprintLogin extends StatefulWidget {
 
 class _FingerprintLoginState extends State<FingerprintLogin> {
   final LocalAuthentication auth = LocalAuthentication();
-  _SupportState _supportState = _SupportState.unknown;
-  bool? _canCheckBiometrics;
-  List<BiometricType>? _availableBiometrics;
-  String _authorized = 'Not Authorized';
   bool _isAuthenticating = false;
-
-  @override
-  void initState() {
-    super.initState();
-    auth.isDeviceSupported().then(
-          (bool isSupported) => setState(
-            () => _supportState = isSupported
-                ? _SupportState.supported
-                : _SupportState.unsupported,
-          ),
-        );
-  }
 
   Future<void> _authenticate() async {
     var authenticated = false;
     try {
       setState(() {
         _isAuthenticating = true;
-        _authorized = 'Authenticating';
       });
       authenticated = await auth.authenticate(
         localizedReason: 'Let OS determine authentication method',
@@ -57,30 +31,31 @@ class _FingerprintLoginState extends State<FingerprintLogin> {
         _isAuthenticating = false;
       });
     } on LocalAuthException catch (e) {
-      print(e);
       setState(() {
         _isAuthenticating = false;
-        if (e.code != LocalAuthExceptionCode.userCanceled &&
-            e.code != LocalAuthExceptionCode.systemCanceled) {
-          _authorized =
-              'Error - ${e.code.name}${e.description != null ? ': ${e.description}' : ''}';
-        }
       });
+      if (e.code != LocalAuthExceptionCode.userCanceled && e.code != LocalAuthExceptionCode.systemCanceled) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Authentication failed: ${e.code.name}${e.description != null ? ' (${e.description})' : ''}'),
+          ),
+        );
+      }
       return;
     } on PlatformException catch (e) {
-      print(e);
       setState(() {
         _isAuthenticating = false;
-        _authorized = 'Unexpected error - ${e.message}';
       });
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Unexpected authentication error: ${e.message ?? 'unknown'}')),
+      );
       return;
     }
     if (!mounted) {
       return;
     }
-    setState(
-        () => _authorized = authenticated ? 'Authorized' : 'Not Authorized');
-
     if (authenticated) {
       // After successful biometric auth, navigate according to current login state.
       if (!mounted) return;
@@ -105,39 +80,66 @@ class _FingerprintLoginState extends State<FingerprintLogin> {
 
   @override
   Widget build(BuildContext context) {
+    final width = MediaQuery.sizeOf(context).width;
+    final titleSize = width < 360 ? 22.0 : 28.0;
     return Scaffold(
       body: SafeArea(
-          child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          Image.asset(
-            "assets/images/logo.png",
-            height: 100,
-          ),
-          InkWell(
-            onTap: _authenticate,
-            child: Container(
-              decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(width: 2, color: Colors.black45)),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(1200),
-                child: Image.asset(
-                  "assets/images/fingerprint-icon.jpg",
-                  fit: BoxFit.cover,
-                  height: 120,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: constraints.maxHeight - 40,
+                ),
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 420),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Image.asset(
+                          'assets/images/logo.png',
+                          height: 100,
+                        ),
+                        const SizedBox(height: 28),
+                        InkWell(
+                          onTap: _isAuthenticating ? null : _authenticate,
+                          borderRadius: BorderRadius.circular(1200),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(width: 2, color: Colors.black45),
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(1200),
+                              child: Image.asset(
+                                'assets/images/fingerprint-icon.jpg',
+                                fit: BoxFit.cover,
+                                height: 120,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        Text(
+                          'Use your fingerprint to unlock the app',
+                          style: TextStyle(fontSize: titleSize, fontWeight: FontWeight.bold),
+                          textAlign: TextAlign.center,
+                        ),
+                        if (_isAuthenticating) ...[
+                          const SizedBox(height: 16),
+                          const CircularProgressIndicator(strokeWidth: 2),
+                        ],
+                      ],
+                    ),
+                  ),
                 ),
               ),
-            ),
-          ),
-          Text(
-            "Use your fingerprint to unlock the app",
-            style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-            textAlign: TextAlign.center,
-          )
-        ],
-      )),
+            );
+          },
+        ),
+      ),
     );
   }
 }

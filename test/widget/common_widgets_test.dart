@@ -14,18 +14,22 @@ Widget _wrap(Widget child, {Size size = const Size(400, 800)}) {
 
 RestaurantModel _restaurant({
   String? image,
+  String name = 'Momo House',
+  String location = 'Kathmandu',
+  List<String> specialties = const ['Momo', 'Chowmein'],
+  String priceRange = '\$\$',
 }) {
   return RestaurantModel(
     id: 'r1',
-    name: 'Momo House',
+    name: name,
     cuisines: const ['Nepali'],
-    location: 'Kathmandu',
+    location: location,
     description: 'Local favorites',
-    specialties: const ['Momo', 'Chowmein'],
+    specialties: specialties,
     services: const ['Dine-in'],
     ratingAvg: 4.4,
     ratingCount: 120,
-    priceRange: '\$\$',
+    priceRange: priceRange,
     photos: image == null ? const [] : [image],
     bestSellers: const ['Steam Momo'],
     latitude: 27.7,
@@ -256,6 +260,29 @@ void main() {
       await tester.tap(find.byType(InkWell));
       await tester.pump();
       expect(tapped, 1);
+    });
+
+    testWidgets('does not overflow on narrow screens with long content', (tester) async {
+      await tester.pumpWidget(
+        _wrap(
+          RestaurantCard(
+            restaurant: _restaurant(
+              name: 'Very Long Restaurant Name That Usually Overflows On Small Screens',
+              location: 'Kathmandu Metropolitan City Ward 27, Bagmati Province, Nepal',
+              specialties: const [
+                'Extra Long Specialty Name One',
+                'Extra Long Specialty Name Two',
+                'Extra Long Specialty Name Three',
+              ],
+              priceRange: 'Very Expensive Tier',
+            ),
+          ),
+          size: const Size(280, 640),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
     });
   });
 }

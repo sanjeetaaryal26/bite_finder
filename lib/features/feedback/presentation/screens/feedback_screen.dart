@@ -30,8 +30,12 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (_loaded) return;
+    final user = context.read<AuthViewModel>().currentUser;
+    if (user == null) {
+      return;
+    }
     _loaded = true;
-    final userId = context.read<AuthViewModel>().currentUser!.id;
+    final userId = user.id;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<FeedbackViewModel>().load(userId);
     });
@@ -40,7 +44,11 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
-    final userId = context.read<AuthViewModel>().currentUser!.id;
+    final user = context.read<AuthViewModel>().currentUser;
+    if (user == null) {
+      return;
+    }
+    final userId = user.id;
     final vm = context.read<FeedbackViewModel>();
     final ok = await vm.submit(
       userId: userId,
@@ -65,7 +73,11 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
   @override
   Widget build(BuildContext context) {
     final vm = context.watch<FeedbackViewModel>();
-    final userId = context.watch<AuthViewModel>().currentUser!.id;
+    final user = context.watch<AuthViewModel>().currentUser;
+    if (user == null) {
+      return const Scaffold(body: LoadingState());
+    }
+    final userId = user.id;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Feedback & Complaint')),

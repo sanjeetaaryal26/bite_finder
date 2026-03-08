@@ -72,8 +72,12 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (_loaded) return;
+    final user = context.read<AuthViewModel>().currentUser;
+    if (user == null) {
+      return;
+    }
     _loaded = true;
-    final userId = context.read<AuthViewModel>().currentUser!.id;
+    final userId = user.id;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<RestaurantDetailViewModel>().load(
             restaurantId: widget.restaurantId,
@@ -85,7 +89,11 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
   Future<void> _submitReview() async {
     FocusScope.of(context).unfocus();
     if (!_reviewFormKey.currentState!.validate()) return;
-    final userId = context.read<AuthViewModel>().currentUser!.id;
+    final user = context.read<AuthViewModel>().currentUser;
+    if (user == null) {
+      return;
+    }
+    final userId = user.id;
     final vm = context.read<RestaurantDetailViewModel>();
     final ok = await vm.addReview(
       userId: userId,
@@ -104,7 +112,11 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final vm = context.watch<RestaurantDetailViewModel>();
-    final userId = context.watch<AuthViewModel>().currentUser!.id;
+    final user = context.watch<AuthViewModel>().currentUser;
+    if (user == null) {
+      return const Scaffold(body: LoadingState());
+    }
+    final userId = user.id;
 
     if (vm.isLoading && vm.restaurant == null) {
       return const Scaffold(body: LoadingState());
@@ -269,7 +281,11 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                 (review) => Card(
                   child: ListTile(
                     leading: CircleAvatar(child: Text(review.rating.toString())),
-                    title: Text(review.comment),
+                    title: Text(
+                      review.comment,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                     subtitle: Text('Posted on ${review.createdAt.split('T').first}'),
                   ),
                 ),

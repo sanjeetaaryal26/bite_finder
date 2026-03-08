@@ -21,8 +21,12 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (_loaded) return;
+    final user = context.read<AuthViewModel>().currentUser;
+    if (user == null) {
+      return;
+    }
     _loaded = true;
-    final userId = context.read<AuthViewModel>().currentUser!.id;
+    final userId = user.id;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<FavoritesViewModel>().load(userId);
     });
@@ -31,7 +35,11 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
   @override
   Widget build(BuildContext context) {
     final vm = context.watch<FavoritesViewModel>();
-    final userId = context.watch<AuthViewModel>().currentUser!.id;
+    final user = context.watch<AuthViewModel>().currentUser;
+    if (user == null) {
+      return const Scaffold(body: LoadingState());
+    }
+    final userId = user.id;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Favorites')),

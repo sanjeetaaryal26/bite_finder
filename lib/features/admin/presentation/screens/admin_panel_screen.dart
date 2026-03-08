@@ -179,9 +179,16 @@ class _AdminAccountCard extends StatelessWidget {
             backgroundImage: imageProvider,
             child: imageProvider == null ? const Icon(Icons.admin_panel_settings_outlined) : null,
           ),
-          title: Text(current.name, style: Theme.of(context).textTheme.titleMedium),
+          title: Text(
+            current.name,
+            style: Theme.of(context).textTheme.titleMedium,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
           subtitle: Text(
             '${current.email}\nRole: ${current.role.name.toUpperCase()}',
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
           ),
           isThreeLine: true,
         ),
@@ -236,6 +243,7 @@ class _RestaurantsTabState extends State<_RestaurantsTab> {
   @override
   Widget build(BuildContext context) {
     final vm = widget.vm;
+    final maxFilterWidth = (MediaQuery.sizeOf(context).width - 56).clamp(220.0, 320.0).toDouble();
     final filtered = RestaurantFilter.apply(
       restaurants: vm.restaurants,
       query: _queryController.text.trim(),
@@ -257,7 +265,7 @@ class _RestaurantsTabState extends State<_RestaurantsTab> {
                 crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
                   SizedBox(
-                    width: 320,
+                    width: maxFilterWidth,
                     child: TextField(
                       controller: _queryController,
                       decoration: InputDecoration(
@@ -328,31 +336,40 @@ class _RestaurantsTabState extends State<_RestaurantsTab> {
                     return Card(
                       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                       child: ListTile(
-                        title: Text(restaurant.name),
+                        title: Text(
+                          restaurant.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                         subtitle: Text(
                           '${restaurant.location}\n${restaurant.cuisines.join(', ')} • ${restaurant.ratingAvg} (${restaurant.ratingCount})',
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                         ),
                         isThreeLine: true,
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              icon: const Icon(Icons.edit_outlined),
-                              onPressed: vm.isLoading ? null : () => _openEditor(context, existing: restaurant),
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.delete_outline),
-                              onPressed: vm.isLoading
-                                  ? null
-                                  : () async {
-                                      final ok = await vm.deleteRestaurant(restaurant.id);
-                                      if (!context.mounted) return;
-                                      if (ok) {
-                                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Restaurant removed')));
-                                      }
-                                    },
-                            ),
-                          ],
+                        trailing: SizedBox(
+                          width: 96,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.edit_outlined),
+                                onPressed: vm.isLoading ? null : () => _openEditor(context, existing: restaurant),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.delete_outline),
+                                onPressed: vm.isLoading
+                                    ? null
+                                    : () async {
+                                        final ok = await vm.deleteRestaurant(restaurant.id);
+                                        if (!context.mounted) return;
+                                        if (ok) {
+                                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Restaurant removed')));
+                                        }
+                                      },
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     );
@@ -395,50 +412,59 @@ class _UsersTab extends StatelessWidget {
               return Card(
                 margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                 child: ListTile(
-                  title: Text(user.name),
+                  title: Text(
+                    user.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                   subtitle: Text(
                     '${user.email}\n'
                     'Role: ${user.role.name.toUpperCase()} • Created ${user.createdAt.split('T').first}\n'
                     'Reviews given: ${vm.reviewsGivenCountForUser(user.id)} • Recent searches: ${vm.recentSearchCountForUser(user.id)}',
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
                   ),
                   isThreeLine: true,
                   leading: CircleAvatar(
                     backgroundImage: imageProvider,
                     child: imageProvider == null ? Text(initial) : null,
                   ),
-                  trailing: Wrap(
-                    spacing: 2,
-                    children: [
-                      PopupMenuButton<UserRole>(
-                        enabled: !isSelf && !vm.isLoading,
-                        onSelected: (role) async {
-                          final ok = await vm.setUserRole(userId: user.id, role: role);
-                          if (!context.mounted) return;
-                          if (ok) {
-                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Role updated')));
-                          }
-                        },
-                        itemBuilder: (context) => [
-                          PopupMenuItem(
-                            value: nextRole,
-                            child: Text(nextRole == UserRole.admin ? 'Make Admin' : 'Make User'),
-                          ),
-                        ],
-                        icon: const Icon(Icons.manage_accounts_outlined),
-                      ),
-                      IconButton(
-                        onPressed: isSelf || vm.isLoading
-                            ? null
-                            : () async {
-                                final ok = await vm.deleteUser(user.id);
-                                if (!context.mounted) return;
-                                if (ok) {
-                                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('User deleted')));
-                                }
-                              },
-                        icon: const Icon(Icons.person_remove_outlined),
-                      ),
-                    ],
+                  trailing: SizedBox(
+                    width: 96,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        PopupMenuButton<UserRole>(
+                          enabled: !isSelf && !vm.isLoading,
+                          onSelected: (role) async {
+                            final ok = await vm.setUserRole(userId: user.id, role: role);
+                            if (!context.mounted) return;
+                            if (ok) {
+                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Role updated')));
+                            }
+                          },
+                          itemBuilder: (context) => [
+                            PopupMenuItem(
+                              value: nextRole,
+                              child: Text(nextRole == UserRole.admin ? 'Make Admin' : 'Make User'),
+                            ),
+                          ],
+                          icon: const Icon(Icons.manage_accounts_outlined),
+                        ),
+                        IconButton(
+                          onPressed: isSelf || vm.isLoading
+                              ? null
+                              : () async {
+                                  final ok = await vm.deleteUser(user.id);
+                                  if (!context.mounted) return;
+                                  if (ok) {
+                                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('User deleted')));
+                                  }
+                                },
+                          icon: const Icon(Icons.person_remove_outlined),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               );
@@ -469,6 +495,8 @@ class _FeedbackTab extends StatelessWidget {
                   title: Text(entry.type == FeedbackType.complaint ? 'Complaint' : 'Feedback'),
                   subtitle: Text(
                     '${entry.message}\nUser: ${user?.email ?? entry.userId}${restaurant == null ? '' : '\nRestaurant: ${restaurant.name}'}',
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
                   ),
                   isThreeLine: true,
                   trailing: IconButton(
@@ -512,6 +540,7 @@ class _ReviewsTabState extends State<_ReviewsTab> {
   @override
   Widget build(BuildContext context) {
     final vm = widget.vm;
+    final maxFilterWidth = (MediaQuery.sizeOf(context).width - 56).clamp(220.0, 280.0).toDouble();
     final query = _queryController.text.trim().toLowerCase();
     final filtered = vm.reviews.where((review) {
       if (review.rating < _minRating) {
@@ -540,7 +569,7 @@ class _ReviewsTabState extends State<_ReviewsTab> {
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               SizedBox(
-                width: 280,
+                width: maxFilterWidth,
                 child: TextField(
                   controller: _queryController,
                   decoration: const InputDecoration(
@@ -575,9 +604,15 @@ class _ReviewsTabState extends State<_ReviewsTab> {
                     return Card(
                       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                       child: ListTile(
-                        title: Text('${review.rating}/5 - ${restaurant?.name ?? review.restaurantId}'),
+                        title: Text(
+                          '${review.rating}/5 - ${restaurant?.name ?? review.restaurantId}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                         subtitle: Text(
                           '${review.comment}\nBy: ${user?.name ?? user?.email ?? review.userId} • ${review.createdAt.split('T').first}',
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
                         ),
                         isThreeLine: true,
                         trailing: IconButton(
@@ -630,9 +665,15 @@ class _ActivityTab extends StatelessWidget {
             return Card(
               child: ListTile(
                 leading: const Icon(Icons.search),
-                title: Text(entry.query),
+                title: Text(
+                  entry.query,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
                 subtitle: Text(
                   '${user?.name ?? user?.email ?? entry.userId} • ${entry.createdAt.split('T').first}',
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             );
@@ -647,9 +688,15 @@ class _ActivityTab extends StatelessWidget {
             (user) => Card(
               child: ListTile(
                 leading: const Icon(Icons.rate_review_outlined),
-                title: Text(user.name),
+                title: Text(
+                  user.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
                 subtitle: Text(
                   '${user.email}\nReviews: ${vm.reviewsGivenCountForUser(user.id)} • Searches: ${vm.recentSearchCountForUser(user.id)}',
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 isThreeLine: true,
               ),

@@ -53,8 +53,12 @@ class _HomeScreenState extends State<HomeScreen> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (_loaded) return;
+    final user = context.read<AuthViewModel>().currentUser;
+    if (user == null) {
+      return;
+    }
     _loaded = true;
-    final userId = context.read<AuthViewModel>().currentUser!.id;
+    final userId = user.id;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<ThemeViewModel>().applyCuisine(context.read<HomeViewModel>().selectedCuisine);
       context.read<HomeViewModel>().load(userId);
@@ -69,7 +73,11 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final vm = context.watch<HomeViewModel>();
-    final userId = context.watch<AuthViewModel>().currentUser!.id;
+    final user = context.watch<AuthViewModel>().currentUser;
+    if (user == null) {
+      return const Scaffold(body: LoadingState());
+    }
+    final userId = user.id;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Discover Restaurants')),
@@ -191,24 +199,30 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                               ),
                               const SizedBox(width: 12),
-                              Row(
-                                children: [
-                                  Checkbox(
-                                    value: vm.highRatingOnly,
-                                    onChanged: (_) => vm.toggleHighRating(userId),
-                                  ),
-                                  const Text('>= 4.0'),
-                                ],
-                              ),
-                              IconButton(
-                                tooltip: 'Reset filters',
-                                onPressed: () {
-                                  _searchController.clear();
-                                  context.read<ThemeViewModel>().reset();
-                                  vm.resetFilters(userId);
-                                  setState(() {});
-                                },
-                                icon: const Icon(Icons.restart_alt),
+                              Flexible(
+                                child: Wrap(
+                                  spacing: 4,
+                                  runSpacing: 8,
+                                  crossAxisAlignment: WrapCrossAlignment.center,
+                                  alignment: WrapAlignment.end,
+                                  children: [
+                                    Checkbox(
+                                      value: vm.highRatingOnly,
+                                      onChanged: (_) => vm.toggleHighRating(userId),
+                                    ),
+                                    const Text('>= 4.0'),
+                                    IconButton(
+                                      tooltip: 'Reset filters',
+                                      onPressed: () {
+                                        _searchController.clear();
+                                        context.read<ThemeViewModel>().reset();
+                                        vm.resetFilters(userId);
+                                        setState(() {});
+                                      },
+                                      icon: const Icon(Icons.restart_alt),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ],
                           ),
